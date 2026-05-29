@@ -1340,6 +1340,7 @@ const allTags = ['全部', '运动', '影音', '探店', '学习', '出行', '�
 function init() {
   setGreeting();
   setCountdown();
+  loadWeather();
   renderPlanList();
   renderTagFilter();
   renderMarkList();
@@ -1365,6 +1366,103 @@ function setCountdown() {
   } else {
     document.getElementById('countdown').innerHTML = `距离下个周末还有 <strong>${daysUntil}</strong> 天`;
   }
+}
+
+// Weather - Real data via Open-Meteo + Browser Geolocation
+function loadWeather() {
+  if (!navigator.geolocation) {
+    console.log('Geolocation not supported');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      fetchWeather(lat, lon);
+    },
+    (err) => {
+      console.log('Location denied, using default (Shenzhen)');
+      // Fallback: Shenzhen
+      fetchWeather(22.54, 114.06);
+    },
+    { timeout: 5000 }
+  );
+}
+
+function fetchWeather(lat, lon) {
+  // Get next Saturday and Sunday dates
+  const now = new Date();
+  const day = now.getDay();
+  let satOffset = 6 - day;
+  if (day === 6) satOffset = 0;
+  if (day === 0) satOffset = 6;
+  const sat = new Date(now);
+  sat.setDate(now.getDate() + satOffset);
+  const sun = new Date(sat);
+  sun.setDate(sat.getDate() + 1);
+
+  const formatDate = (d) => d.toISOString().split('T')[0];
+  const startDate = formatDate(sat);
+  const endDate = formatDate(sun);
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&start_date=${startDate}&end_date=${endDate}&timezone=Asia%2FShanghai`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.daily) return;
+      const temps = data.daily.temperature_2m_max;
+      const codes = data.daily.weathercode;
+
+      // Update Saturday
+      const satTemp = Math.round(temps[0]);
+      const satDesc = weatherCodeToText(codes[0]);
+      const satIcon = weatherCodeToIcon(codes[0]);
+      // Update Sunday
+      const sunTemp = Math.round(temps[1]);
+      const sunDesc = weatherCodeToText(codes[1]);
+      const sunIcon = weatherCodeToIcon(codes[1]);
+
+      const days = document.querySelectorAll('.weather-day');
+      if (days[0]) {
+        days[0].querySelector('.day-date').textContent = `${sat.getMonth()+1}月${sat.getDate()}日`;
+        days[0].querySelector('.temp').textContent = satTemp + '°';
+        days[0].querySelector('.desc').textContent = satDesc;
+        days[0].querySelector('.weather-icon').innerHTML = `<i data-lucide="${satIcon}"></i>`;
+      }
+      if (days[1]) {
+        days[1].querySelector('.day-date').textContent = `${sun.getMonth()+1}月${sun.getDate()}日`;
+        days[1].querySelector('.temp').textContent = sunTemp + '°';
+        days[1].querySelector('.desc').textContent = sunDesc;
+        days[1].querySelector('.weather-icon').innerHTML = `<i data-lucide="${sunIcon}"></i>`;
+      }
+      lucide.createIcons();
+    })
+    .catch(e => console.log('Weather fetch failed:', e));
+}
+
+function weatherCodeToText(code) {
+  const map = {
+    0: '晴', 1: '晴', 2: '多云', 3: '阴',
+    45: '雾', 48: '雾',
+    51: '小雨', 53: '小雨', 55: '小雨',
+    61: '中雨', 63: '中雨', 65: '大雨',
+    71: '小雪', 73: '中雪', 75: '大雪',
+    80: '阵雨', 81: '阵雨', 82: '暴雨',
+    95: '雷阵雨', 96: '雷阵雨', 99: '雷阵雨'
+  };
+  return map[code] || '多云';
+}
+
+function weatherCodeToIcon(code) {
+  if (code <= 1) return 'sun';
+  if (code <= 3) return 'cloud-sun';
+  if (code <= 48) return 'cloud-fog';
+  if (code <= 55) return 'cloud-drizzle';
+  if (code <= 65) return 'cloud-rain';
+  if (code <= 75) return 'snowflake';
+  if (code <= 82) return 'cloud-rain-wind';
+  return 'cloud-lightning';
 }
 
 // Plan List (items where inPlan=true)
