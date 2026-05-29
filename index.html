@@ -154,8 +154,8 @@ body {
 .weather-card {
   background: transparent;
   border-radius: 0;
-  padding: 0 0 48px 0;
-  margin-bottom: 56px;
+  padding: 0 0 24px 0;
+  margin-bottom: 40px;
   display: flex;
   gap: 0;
   border-bottom: 0.5px solid var(--hairline);
@@ -176,17 +176,17 @@ body {
 .weather-day .day-date {
   font-size: 12px;
   color: var(--muted);
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .weather-day .weather-icon {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
-.weather-day .weather-icon i { color: var(--primary); width: 28px; height: 28px; }
+.weather-day .weather-icon i { color: var(--primary); width: 24px; height: 24px; }
 
 .weather-day .temp {
   font-family: var(--font-heading);
-  font-size: 40px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -1.5px;
@@ -1196,7 +1196,7 @@ body {
       <div class="tab-panel" id="tab-review">
         <div class="review-header">
           <button class="review-nav" onclick="prevWeek()"><i data-lucide="chevron-left"></i></button>
-          <div class="review-date" id="review-date">5月24日 - 5月25日</div>
+          <div class="review-date" id="review-date">暂无历史数据</div>
           <button class="review-nav" onclick="nextWeek()"><i data-lucide="chevron-right"></i></button>
         </div>
 
@@ -1728,7 +1728,10 @@ function dismissSuggestion() {
 let isRolling = false;
 function randomPick() {
   const available = markItems.filter(i => !i.inPlan && !i.done);
-  if (available.length === 0) return;
+  if (available.length === 0) {
+    alert('还没有可选的 Mark，先去收藏几个吧 ✨');
+    return;
+  }
   if (isRolling) return;
   showDiceOverlay(available);
 }
@@ -1832,18 +1835,20 @@ function closeDice() {
 
 // Review
 function prevWeek() {
-  currentWeekLabel = '5月17日 - 5月18日';
-  document.getElementById('review-date').textContent = currentWeekLabel;
-  document.getElementById('stat-done').textContent = '2';
-  document.getElementById('stat-skip').textContent = '2';
+  document.getElementById('review-date').textContent = '暂无历史数据';
+  document.getElementById('stat-done').textContent = '0';
+  document.getElementById('stat-skip').textContent = '0';
+  document.getElementById('review-done-list').innerHTML = '';
+  document.getElementById('review-skip-list').innerHTML = '';
   renderWeekNote();
 }
 
 function nextWeek() {
-  currentWeekLabel = '5月24日 - 5月25日';
-  document.getElementById('review-date').textContent = currentWeekLabel;
-  document.getElementById('stat-done').textContent = '3';
-  document.getElementById('stat-skip').textContent = '1';
+  document.getElementById('review-date').textContent = '暂无历史数据';
+  document.getElementById('stat-done').textContent = '0';
+  document.getElementById('stat-skip').textContent = '0';
+  document.getElementById('review-done-list').innerHTML = '';
+  document.getElementById('review-skip-list').innerHTML = '';
   renderWeekNote();
 }
 
