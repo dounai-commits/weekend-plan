@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美好周末</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --canvas: #F5F5F7;
+  --primary: #1D1D1F;
+  --primary-active: #000000;
+  --ink: #1D1D1F;
+  --body: #1D1D1F;
+  --muted: #86868B;
+  --muted-soft: #86868B;
+  --hairline: #D2D2D7;
+  --hairline-soft: #E8E8ED;
+  --surface-soft: #F5F5F7;
+  --surface-card: #FFFFFF;
+  --surface-dark: #1D1D1F;
+  --on-dark: #F5F5F7;
+  --on-dark-soft: #86868B;
+  --success: #34C759;
+  --accent-teal: #34C759;
+  --font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --radius-btn: 6px;
+  --radius-card: 6px;
+  --radius-container: 6px;
+  --radius-pill: 9999px;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--canvas);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.phone-frame {
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+  margin: 0 auto;
+  background: var(--canvas);
+  overflow: hidden;
+  position: relative;
+}
+
+.app-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas);
+  position: relative;
+}
+
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 64px;
+  scrollbar-width: none;
+}
+.tab-content::-webkit-scrollbar { display: none; }
+
+.tab-panel { display: none; padding: 0 24px; padding-top: 48px; }
+.tab-panel.active { display: block; }
+
+/* Bottom Tab Bar */
+.tab-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--canvas);
+  border-top: 0.5px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 50;
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: all 0.2s;
+}
+
+.tab-item span {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.tab-item i { color: var(--muted); width: 22px; height: 22px; }
+
+.tab-item.active i { color: var(--primary); }
+.tab-item.active span { color: var(--primary); font-weight: 600; }
+
+/* ===== TAB 1: Weekend ===== */
+.greeting {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.icon-btn:hover { background: var(--hairline-soft); }
+.icon-btn i { color: var(--body); width: 20px; height: 20px; }
+
+.countdown {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 56px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+.countdown strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Weather Card */
+.weather-card {
+  background: transparent;
+  border-radius: 0;
+  padding: 0 0 48px 0;
+  margin-bottom: 56px;
+  display: flex;
+  gap: 0;
+  border-bottom: 0.5px solid var(--hairline);
+}
+
+.weather-day {
+  flex: 1;
+  text-align: center;
+}
+
+.weather-day .day-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.weather-day .day-date {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.weather-day .weather-icon {
+  margin-bottom: 12px;
+}
+.weather-day .weather-icon i { color: var(--primary); width: 28px; height: 28px; }
+
+.weather-day .temp {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -1.5px;
+}
+
+.weather-day .desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.weather-divider {
+  width: 0.5px;
+  background: var(--hairline);
+  margin: 8px 0;
+}
+
+/* Section Header Row */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.section-header-row .section-title {
+  margin-bottom: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Section Title */
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.7px;
+}
+
+/* Plan day label */
+.plan-day-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.plan-day-label:first-child { margin-top: 0; }
+.plan-day-label::before {
+  display: none;
+}
+
+/* Plan List */
+.plan-list { display: flex; flex-direction: column; gap: 0; }
+
+.plan-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  background: transparent;
+  border-radius: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-bottom: 0;
+  border-bottom: 0.5px solid var(--hairline);
+}
+.plan-item:hover { opacity: 0.7; }
+
+.plan-item.done {
+  opacity: 0.5;
+}
+.plan-item.done .plan-title { text-decoration: line-through; color: var(--muted); }
+.plan-item.done .plan-meta { color: var(--muted); }
+
+.plan-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.plan-checkbox.checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+.plan-checkbox.checked i { color: white; }
+.plan-checkbox i { color: transparent; width: 14px; height: 14px; }
+
+.plan-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.plan-icon i { color: var(--primary); width: 22px; height: 22px; }
+
+.plan-info { flex: 1; min-width: 0; }
+.plan-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 3px;
+  letter-spacing: -0.3px;
+}
+.plan-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.plan-arrow { flex-shrink: 0; }
+.plan-arrow i { color: var(--muted); width: 16px; height: 16px; }
+
+/* AI Suggestion */
+.ai-suggestion {
+  border: none;
+  border-left: 2px solid var(--primary);
+  border-radius: 0;
+  padding: 20px 20px;
+  margin-top: 48px;
+  background: transparent;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ai-header i { color: var(--primary); width: 18px; height: 18px; }
+.ai-header span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.ai-text {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  letter-spacing: -0.2px;
+}
+
+.ai-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-sm {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-btn);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: var(--primary-active); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 0.5px solid var(--hairline);
+}
+.btn-ghost:hover { background: var(--hairline-soft); }
+
+/* ===== TAB 2: Mark ===== */
+.mark-header {
+  margin-bottom: 48px;
+}
+
+.mark-title {
+  font-family: var(--font-heading);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.mark-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 8px;
+  letter-spacing: -0.2px;
+}
+
+/* Tag Filter */
+.tag-filter {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 32px;
+  scrollbar-width: none;
+  margin: 0 -24px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.tag-filter::-webkit-scrollbar { display: none; }
+
+.tag-chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  border: 0.5px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-body);
+  letter-spacing: -0.2px;
+}
+.tag-chip.active {
+  background: var(--surface-dark);
+  color: var(--on-dark);
+  border-color: var(--surface-dark);
+}
+.tag-chip:hover:not(.active) { background: var(--hairline-soft); }
+
+/* Mark List */
+.mark-list { display: flex; flex-direction: column; gap: 0; }
+
+.mark-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  background: transparent;
+  border-radius: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  border-bottom: 0.5px solid var(--hairline);
+}
+.mark-item:hover { opacity: 0.7; }
+.mark-item:last-child { border-bottom: none; }
+
+.mark-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-card);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.mark-icon i { color: var(--primary); width: 22px; height: 22px; }
+.mark-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-card); }
+
+.mark-info { flex: 1; min-width: 0; }
+.mark-item-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 3px;
+  letter-spacing: -0.3px;
+}
+.mark-item-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mark-arrow { flex-shrink: 0; }
+.mark-arrow i { color: var(--muted); width: 16px; height: 16px; }
+
+/* FAB buttons */
+.fab-container {
+  position: absolute;
+  bottom: 84px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 40;
+}
+
+.fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  box-shadow: none;
+}
+
+.fab-primary {
+  background: var(--primary);
+  color: white;
+}
+.fab-primary:hover { opacity: 0.8; }
+
+.fab-secondary {
+  background: var(--surface-dark);
+  color: var(--on-dark);
+}
+.fab-secondary:hover { opacity: 0.8; }
+
+.fab i { width: 20px; height: 20px; }
+
+.fab-left {
+  position: absolute;
+  bottom: 84px;
+  left: 24px;
+  z-index: 40;
+}
+
+/* ===== TAB 3: Review ===== */
+.review-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.review-nav {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.review-nav:hover { background: var(--hairline-soft); }
+.review-nav i { color: var(--body); width: 18px; height: 18px; }
+
+.review-date {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+
+/* Stats */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 56px;
+}
+
+.stat-card {
+  flex: 1;
+  background: transparent;
+  border-radius: 0;
+  padding: 24px 0;
+  text-align: center;
+  border-bottom: 0.5px solid var(--hairline);
+}
+
+.stat-number {
+  font-family: var(--font-heading);
+  font-size: 52px;
+  font-weight: 300;
+  color: var(--ink);
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.stat-card.success .stat-number { color: var(--success); }
+.stat-card.muted .stat-number { color: var(--muted); }
+
+/* Review Lists */
+.review-section {
+  margin-bottom: 40px;
+}
+
+.review-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.review-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 0.5px solid var(--hairline);
+}
+.review-item:last-child { border-bottom: none; }
+
+.review-item-icon i { width: 18px; height: 18px; }
+.review-item.completed .review-item-icon i { color: var(--success); }
+.review-item.skipped .review-item-icon i { color: var(--muted); }
+
+.review-item-text {
+  font-size: 16px;
+  color: var(--body);
+  letter-spacing: -0.3px;
+}
+.review-item.skipped .review-item-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* Rating Section */
+.rating-section {
+  background: transparent;
+  border-radius: 0;
+  padding: 32px 0;
+  margin-top: 40px;
+  text-align: center;
+  border-top: 0.5px solid var(--hairline);
+}
+
+.rating-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 32px;
+  letter-spacing: -0.7px;
+}
+
+.rating-emojis {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.rating-emoji {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 26px;
+  transition: all 0.2s;
+  border: 1.5px solid transparent;
+}
+.rating-emoji:hover { background: var(--hairline-soft); transform: scale(1.05); }
+.rating-emoji.selected {
+  border-color: var(--primary);
+  background: transparent;
+  transform: scale(1.1);
+}
+
+/* Note Area */
+.note-area {
+  display: none;
+  margin-top: 24px;
+}
+.note-area.visible { display: block; }
+
+.note-textarea {
+  width: 100%;
+  height: 120px;
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  padding: 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--body);
+  background: white;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.note-textarea:focus { border-color: var(--primary); }
+.note-textarea.locked {
+  background: var(--hairline-soft);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* Sticky Note */
+.sticky-note {
+  background: #FAFAFA;
+  border-radius: var(--radius-card);
+  padding: 24px;
+  text-align: left;
+  border: 0.5px solid var(--hairline);
+  box-shadow: none;
+  transform: none;
+}
+
+.sticky-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sticky-note-emoji {
+  font-size: 32px;
+}
+
+.sticky-note-edit {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sticky-note-edit:hover { background: rgba(0,0,0,0.1); }
+.sticky-note-edit i { width: 13px; height: 13px; color: var(--muted); }
+
+.sticky-note-text {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  letter-spacing: -0.2px;
+}
+
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.note-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.btn-save {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: white;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.btn-save:hover { background: var(--primary-active); }
+.btn-save:disabled {
+  background: var(--hairline);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* ===== Modal / Sheet ===== */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.visible { display: flex; }
+
+.bottom-sheet {
+  width: 100%;
+  max-height: 75%;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  padding: 32px 24px;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--hairline);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.sheet-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sheet-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sheet-meta i { width: 14px; height: 14px; }
+
+.sheet-title {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+
+.sheet-desc {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.sheet-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--hairline-soft);
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-full {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--radius-btn);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+
+/* Add Modal */
+.add-modal .bottom-sheet { padding: 32px 24px; }
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  padding: 0 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--body);
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--primary); }
+
+.form-textarea {
+  width: 100%;
+  height: 100px;
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  padding: 14px 16px 40px 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--body);
+  background: white;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-textarea:focus { border-color: var(--primary); }
+
+.form-desc-area {
+  position: relative;
+}
+
+.form-img-hotzone {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-btn);
+  border: 0.5px dashed var(--hairline);
+  background: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.form-img-hotzone:hover { border-color: var(--primary); }
+.form-img-hotzone i { width: 16px; height: 16px; color: var(--muted); }
+.form-img-hotzone.has-img { border-style: solid; border-color: var(--primary); }
+.form-img-hotzone.has-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.form-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.form-tag {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  cursor: pointer;
+  border: 0.5px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.form-tag.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.form-schedule {
+  display: flex;
+  gap: 10px;
+}
+
+.schedule-opt {
+  flex: 1;
+  height: 44px;
+  border-radius: var(--radius-btn);
+  border: 0.5px solid var(--hairline);
+  background: transparent;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.schedule-opt.selected {
+  background: var(--surface-dark);
+  color: var(--on-dark);
+  border-color: var(--surface-dark);
+}
+
+.btn-submit {
+  width: 100%;
+  height: 52px;
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-body);
+  margin-top: 28px;
+  transition: all 0.2s;
+}
+.btn-submit:hover { background: var(--primary-active); }
+
+/* ===== Dice Overlay ===== */
+#dice-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-card {
+  width: 320px;
+  background: white;
+  border-radius: 12px;
+  padding: 40px 32px;
+  text-align: center;
+  animation: diceCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.dice-close {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--hairline-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dice-close:hover { background: var(--hairline); }
+.dice-close i { width: 16px; height: 16px; color: var(--muted); }
+
+@keyframes diceCardIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dice-icon-wrap {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  background: var(--canvas);
+  border-radius: var(--radius-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+.dice-icon-wrap i { color: var(--primary); width: 32px; height: 32px; }
+.dice-icon-wrap { cursor: pointer; }
+.dice-icon-wrap:hover { background: var(--hairline-soft); }
+
+.dice-reroll-hint {
+  display: none;
+}
+
+/* Rolling animation */
+.dice-icon-wrap.rolling {
+  animation: diceRoll 0.6s ease-in-out infinite;
+}
+@keyframes diceRoll {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Landed bounce */
+.dice-icon-wrap.landed {
+  animation: diceLand 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes diceLand {
+  0% { transform: scale(1.2) rotate(10deg); }
+  50% { transform: scale(0.9) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.dice-result-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.7px;
+  margin-bottom: 8px;
+  transition: opacity 0.15s;
+}
+
+.dice-result-desc {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.dice-result-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--hairline-soft);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.dice-result-tag:empty { display: none; }
+
+.dice-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.dice-actions .btn-full {
+  flex: 1;
+  height: 44px;
+  border-radius: var(--radius-btn);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="app-container">
+    <div class="tab-content">
+      <!-- Tab 1: Weekend -->
+      <div class="tab-panel active" id="tab-weekend">
+        <div class="greeting" id="greeting">Hi 豆奶同学，下午好～</div>
+        <div class="countdown" id="countdown">距离下个周末还有 <strong>3</strong> 天</div>
+
+        <div class="weather-card">
+          <div class="weather-day">
+            <div class="day-label">周六</div>
+            <div class="day-date">5月30日</div>
+            <div class="weather-icon"><i data-lucide="sun"></i></div>
+            <div class="temp">28°</div>
+            <div class="desc">晴</div>
+          </div>
+          <div class="weather-divider"></div>
+          <div class="weather-day">
+            <div class="day-label">周日</div>
+            <div class="day-date">5月31日</div>
+            <div class="weather-icon"><i data-lucide="cloud-sun"></i></div>
+            <div class="temp">26°</div>
+            <div class="desc">多云</div>
+          </div>
+        </div>
+
+        <div class="section-header-row">
+          <div class="section-title">本周末计划</div>
+          <div class="header-actions">
+            <div class="icon-btn" onclick="openAddModal()"><i data-lucide="plus"></i></div>
+            <div class="icon-btn" onclick="randomPick()"><i data-lucide="dices"></i></div>
+          </div>
+        </div>
+
+        <div class="plan-list" id="plan-list"></div>
+      </div>
+
+      <!-- Tab 2: Mark -->
+      <div class="tab-panel" id="tab-mark">
+        <div class="mark-header">
+          <div class="mark-title">我的 Mark</div>
+          <div class="mark-subtitle">收藏美好，周末再做</div>
+        </div>
+
+        <div class="tag-filter" id="tag-filter"></div>
+        <div class="mark-list" id="mark-list"></div>
+      </div>
+
+      <!-- Tab 3: Review -->
+      <div class="tab-panel" id="tab-review">
+        <div class="review-header">
+          <button class="review-nav" onclick="prevWeek()"><i data-lucide="chevron-left"></i></button>
+          <div class="review-date" id="review-date">5月24日 - 5月25日</div>
+          <button class="review-nav" onclick="nextWeek()"><i data-lucide="chevron-right"></i></button>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card success">
+            <div class="stat-number" id="stat-done">0</div>
+            <div class="stat-label">已完成</div>
+          </div>
+          <div class="stat-card muted">
+            <div class="stat-number" id="stat-skip">0</div>
+            <div class="stat-label">跳过</div>
+          </div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-section-title">完成</div>
+          <div id="review-done-list">
+          </div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-section-title">跳过</div>
+          <div id="review-skip-list">
+          </div>
+        </div>
+
+        <div class="rating-section">
+          <div class="rating-title">这个周末怎么样？</div>
+          <div class="rating-emojis" id="rating-emojis">
+            <div class="rating-emoji" data-score="1" onclick="selectRating(this)">😫</div>
+            <div class="rating-emoji" data-score="2" onclick="selectRating(this)">😐</div>
+            <div class="rating-emoji" data-score="3" onclick="selectRating(this)">🙂</div>
+            <div class="rating-emoji" data-score="4" onclick="selectRating(this)">😊</div>
+            <div class="rating-emoji" data-score="5" onclick="selectRating(this)">🥳</div>
+          </div>
+          <div class="note-area" id="note-area">
+            <textarea class="note-textarea" id="note-textarea" placeholder="写点小记吧..." maxlength="600" oninput="updateCount()"></textarea>
+            <div class="note-footer">
+              <span class="note-count" id="note-count">0/600</span>
+              <button class="btn-save" id="btn-save-note" onclick="saveNote()">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAB buttons (only in Mark tab) -->
+    <div class="fab-container" id="fab-container" style="display:none;">
+      <button class="fab fab-primary" onclick="openAddModal()"><i data-lucide="plus"></i></button>
+    </div>
+    <div class="fab-left" id="fab-left" style="display:none;">
+      <button class="fab fab-secondary" onclick="randomPick()"><i data-lucide="dices"></i></button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <div class="tab-item active" data-tab="tab-weekend" onclick="switchTab(this)">
+        <i data-lucide="calendar-heart"></i>
+        <span>周末</span>
+      </div>
+      <div class="tab-item" data-tab="tab-mark" onclick="switchTab(this)">
+        <i data-lucide="bookmark"></i>
+        <span>我的Mark</span>
+      </div>
+      <div class="tab-item" data-tab="tab-review" onclick="switchTab(this)">
+        <i data-lucide="clock-3"></i>
+        <span>回顾</span>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="detail-modal" onclick="closeModal(event, 'detail-modal')">
+      <div class="bottom-sheet" id="detail-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-top-row">
+          <div class="icon-btn" onclick="hideModal('detail-modal')"><i data-lucide="x"></i></div>
+          <div class="icon-btn" onclick="editFromDetail()"><i data-lucide="pencil"></i></div>
+        </div>
+        <div class="sheet-title" id="detail-title">标题</div>
+        <div class="sheet-desc" id="detail-desc">描述</div>
+        <div class="sheet-meta" id="detail-meta"></div>
+        <div class="sheet-tag" id="detail-tag">标签</div>
+        <div class="sheet-actions" id="detail-actions">
+          <button class="btn-full btn-primary" id="detail-btn-sat" onclick="addToPlanDay('周六')">周六做</button>
+          <button class="btn-full" style="background:var(--surface-dark);color:var(--on-dark);" id="detail-btn-sun" onclick="addToPlanDay('周日')">周日做</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal-overlay add-modal" id="add-modal" onclick="closeModal(event, 'add-modal')">
+      <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" style="margin-bottom: 16px;">Mark 一下</div>
+        <div class="form-group">
+          <label class="form-label">名称</label>
+          <input class="form-input" id="add-name" placeholder="想做什么？">
+        </div>
+        <div class="form-group">
+          <label class="form-label">简介</label>
+          <div class="form-desc-area">
+            <textarea class="form-textarea" id="add-desc" placeholder="随便写写..."></textarea>
+            <div class="form-img-hotzone" id="form-img-hotzone" onclick="document.getElementById('form-img-input').click()">
+              <i data-lucide="image"></i>
+            </div>
+            <input type="file" id="form-img-input" accept="image/*" style="display:none;" onchange="handleFormImg(this)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">标签</label>
+          <div class="form-tags" id="form-tags"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">安排</label>
+          <div class="form-schedule">
+            <button class="schedule-opt" data-plan="周六" onclick="selectSchedule(this)">周六做</button>
+            <button class="schedule-opt" data-plan="周日" onclick="selectSchedule(this)">周日做</button>
+            <button class="schedule-opt selected" data-plan="none" onclick="selectSchedule(this)">先收着</button>
+          </div>
+        </div>
+        <button class="btn-submit" onclick="submitAdd()">Mark 一下</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Data
+let markItems = [];
+
+
+let currentFilter = '全部';
+let selectedDetailItem = null;
+let selectedFormTag = null;
+let selectedSchedule = 'none';
+let noteSaved = false;
+
+const allTags = ['全部', '运动', '影音', '探店', '学习', '出行', '其他'];
+
+// Init
+function init() {
+  setGreeting();
+  setCountdown();
+  renderPlanList();
+  renderTagFilter();
+  renderMarkList();
+  lucide.createIcons();
+}
+
+function setGreeting() {
+  const h = new Date().getHours();
+  let period = '早上';
+  if (h >= 12 && h < 14) period = '中午';
+  else if (h >= 14 && h < 18) period = '下午';
+  else if (h >= 18) period = '晚上';
+  document.getElementById('greeting').textContent = `Hi 豆奶同学，${period}好～`;
+}
+
+function setCountdown() {
+  const now = new Date();
+  const day = now.getDay();
+  let daysUntil = 6 - day;
+  if (day === 6 || day === 0) daysUntil = 0;
+  if (daysUntil === 0) {
+    document.getElementById('countdown').innerHTML = '🎉 今天就是周末！好好享受吧';
+  } else {
+    document.getElementById('countdown').innerHTML = `距离下个周末还有 <strong>${daysUntil}</strong> 天`;
+  }
+}
+
+// Plan List (items where inPlan=true)
+function renderPlanList() {
+  const list = document.getElementById('plan-list');
+  const planItems = markItems.filter(i => i.inPlan);
+  const satItems = planItems.filter(i => i.planDay === '周六');
+  const sunItems = planItems.filter(i => i.planDay === '周日');
+  const sortGroup = (items) => [...items.filter(i => !i.done), ...items.filter(i => i.done)];
+
+  let html = '';
+  if (satItems.length) {
+    html += '<div class="plan-day-label">周六</div>';
+    sortGroup(satItems).forEach(item => {
+      const doneClass = item.done ? 'done' : '';
+      const checkedClass = item.done ? 'checked' : '';
+      const checkInner = item.done ? '<i data-lucide="check"></i>' : '';
+      html += '<div class="plan-item ' + doneClass + '" data-id="' + item.id + '" onclick="openPlanDetail(' + item.id + ')">' +
+        '<div class="plan-checkbox ' + checkedClass + '" onclick="toggleDone(event, ' + item.id + ')">' + checkInner + '</div>' +
+        '<div class="plan-icon"><i data-lucide="' + item.icon + '"></i></div>' +
+        '<div class="plan-info"><div class="plan-title">' + item.title + '</div>' +
+        '<div class="plan-meta">' + item.meta + ' · ' + item.tag + '</div></div>' +
+        '<div class="plan-arrow"><i data-lucide="chevron-right"></i></div></div>';
+    });
+  }
+  if (sunItems.length) {
+    html += '<div class="plan-day-label">周日</div>';
+    sortGroup(sunItems).forEach(item => {
+      const doneClass = item.done ? 'done' : '';
+      const checkedClass = item.done ? 'checked' : '';
+      const checkInner = item.done ? '<i data-lucide="check"></i>' : '';
+      html += '<div class="plan-item ' + doneClass + '" data-id="' + item.id + '" onclick="openPlanDetail(' + item.id + ')">' +
+        '<div class="plan-checkbox ' + checkedClass + '" onclick="toggleDone(event, ' + item.id + ')">' + checkInner + '</div>' +
+        '<div class="plan-icon"><i data-lucide="' + item.icon + '"></i></div>' +
+        '<div class="plan-info"><div class="plan-title">' + item.title + '</div>' +
+        '<div class="plan-meta">' + item.meta + ' · ' + item.tag + '</div></div>' +
+        '<div class="plan-arrow"><i data-lucide="chevron-right"></i></div></div>';
+    });
+  }
+  if (!planItems.length) {
+    html = '<div style="text-align:center;padding:32px 0;color:var(--muted-soft);font-size:13px;">还没有计划，去 Mark 池挑几个吧</div>';
+  }
+  list.innerHTML = html;
+  lucide.createIcons();
+}
+
+function toggleDone(e, id) {
+  e.stopPropagation();
+  const item = markItems.find(i => i.id === id);
+  if (item) {
+    item.done = !item.done;
+    renderPlanList();
+  }
+}
+
+// Tag Filter
+function renderTagFilter() {
+  const container = document.getElementById('tag-filter');
+  container.innerHTML = allTags.map(tag => `
+    <button class="tag-chip ${tag === currentFilter ? 'active' : ''}" onclick="filterByTag('${tag}')">${tag}</button>
+  `).join('');
+}
+
+function filterByTag(tag) {
+  currentFilter = tag;
+  renderTagFilter();
+  renderMarkList();
+}
+
+// Mark List
+function renderMarkList() {
+  const list = document.getElementById('mark-list');
+  let items = markItems;
+  if (currentFilter !== '全部') {
+    items = items.filter(i => i.tag === currentFilter);
+  }
+
+  list.innerHTML = items.map(item => `
+    <div class="mark-item" onclick="showDetail(${item.id})">
+      <div class="mark-icon">
+        ${item.img ? `<img src="${item.img}" alt="">` : `<i data-lucide="${item.icon}"></i>`}
+      </div>
+      <div class="mark-info">
+        <div class="mark-item-title">${item.title}</div>
+        <div class="mark-item-meta">${item.meta} · ${item.tag}</div>
+      </div>
+      <div class="mark-arrow"><i data-lucide="chevron-right"></i></div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+// Tab Switching
+function switchTab(el) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const tabId = el.getAttribute('data-tab');
+  document.getElementById(tabId).classList.add('active');
+
+  // Show/hide FABs
+  const fabContainer = document.getElementById('fab-container');
+  const fabLeft = document.getElementById('fab-left');
+  if (tabId === 'tab-mark') {
+    fabContainer.style.display = 'flex';
+    fabLeft.style.display = 'block';
+  } else {
+    fabContainer.style.display = 'none';
+    fabLeft.style.display = 'none';
+  }
+}
+
+// Detail Modal
+let detailMode = 'mark'; // 'mark' or 'plan'
+function showDetail(id) {
+  const item = markItems.find(i => i.id === id);
+  if (!item) return;
+  selectedDetailItem = item;
+  detailMode = 'mark';
+  document.getElementById('detail-title').textContent = item.title;
+  document.getElementById('detail-desc').textContent = item.desc;
+  document.getElementById('detail-meta').innerHTML = '<i data-lucide="clock"></i> ' + item.meta;
+  document.getElementById('detail-tag').textContent = item.tag;
+  // Show plan day buttons for Mark items
+  document.getElementById('detail-btn-sat').style.display = '';
+  document.getElementById('detail-btn-sun').style.display = '';
+  document.getElementById('detail-actions').style.display = '';
+  showModal('detail-modal');
+  lucide.createIcons();
+}
+
+function openPlanDetail(id) {
+  const item = markItems.find(i => i.id === id);
+  if (!item) return;
+  selectedDetailItem = item;
+  detailMode = 'plan';
+  document.getElementById('detail-title').textContent = item.title;
+  document.getElementById('detail-desc').textContent = item.desc;
+  document.getElementById('detail-meta').innerHTML = '<i data-lucide="calendar"></i> 已安排在' + item.planDay + ' · ' + item.tag;
+  document.getElementById('detail-tag').textContent = item.tag;
+  // Hide plan day buttons for Plan items (already in plan)
+  document.getElementById('detail-btn-sat').style.display = 'none';
+  document.getElementById('detail-btn-sun').style.display = 'none';
+  document.getElementById('detail-actions').style.display = 'none';
+  showModal('detail-modal');
+  lucide.createIcons();
+}
+
+function editFromDetail() {
+  hideModal('detail-modal');
+  if (selectedDetailItem) {
+    setTimeout(function() {
+      openAddModal();
+      document.getElementById('add-name').value = selectedDetailItem.title;
+      document.getElementById('add-desc').value = selectedDetailItem.desc || '';
+      selectedFormTag = selectedDetailItem.tag;
+      renderFormTags();
+    }, 350);
+  }
+}
+
+function addToPlanDay(day) {
+  if (selectedDetailItem) {
+    selectedDetailItem.inPlan = true;
+    selectedDetailItem.planDay = day;
+    renderPlanList();
+    renderMarkList();
+    hideModal('detail-modal');
+  }
+}
+
+// Add Modal
+function openAddModal() {
+  // Reset image state
+  window._formImgData = null;
+  const hz = document.getElementById('form-img-hotzone');
+  if (hz) {
+    hz.classList.remove('has-img');
+    hz.innerHTML = '<i data-lucide="image"></i>';
+  }
+  renderFormTags();
+  showModal('add-modal');
+  lucide.createIcons();
+}
+
+function handleFormImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    window._formImgData = e.target.result;
+    const hz = document.getElementById('form-img-hotzone');
+    hz.classList.add('has-img');
+    hz.innerHTML = '<img src="' + e.target.result + '" />';
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderFormTags() {
+  const container = document.getElementById('form-tags');
+  const tags = ['运动', '影音', '探店', '学习', '出行', '其他', '家务', '购物'];
+  container.innerHTML = tags.map(tag => `
+    <button class="form-tag ${tag === selectedFormTag ? 'selected' : ''}" onclick="selectFormTag(event, '${tag}')">${tag}</button>
+  `).join('');
+}
+
+function selectFormTag(e, tag) {
+  e.preventDefault();
+  selectedFormTag = tag;
+  renderFormTags();
+}
+
+function selectSchedule(el) {
+  document.querySelectorAll('.schedule-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSchedule = el.getAttribute('data-plan');
+}
+
+function submitAdd() {
+  const name = document.getElementById('add-name').value.trim();
+  const desc = document.getElementById('add-desc').value.trim();
+  if (!name) return;
+
+  const newItem = {
+    id: Date.now(),
+    title: name,
+    desc: desc || '',
+    tag: selectedFormTag || '其他',
+    icon: 'star',
+    meta: '刚刚收藏',
+    img: window._formImgData || null,
+    inPlan: selectedSchedule !== 'none',
+    planDay: selectedSchedule !== 'none' ? selectedSchedule : null,
+    done: false
+  };
+
+  markItems.push(newItem);
+  renderMarkList();
+  renderPlanList();
+  hideModal('add-modal');
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-desc').value = '';
+  selectedFormTag = null;
+  selectedSchedule = 'none';
+}
+
+// AI Suggestion
+function adoptSuggestion() {
+  const item = markItems.find(i => i.id === 3); // 爬白云山
+  if (item) {
+    item.inPlan = true;
+    item.planDay = '周六';
+    renderPlanList();
+  }
+  document.getElementById('ai-suggestion').style.display = 'none';
+}
+
+function dismissSuggestion() {
+  document.getElementById('ai-suggestion').style.display = 'none';
+}
+
+// ====== RANDOM PICK with Dice Animation ======
+let isRolling = false;
+function randomPick() {
+  const available = markItems.filter(i => !i.inPlan && !i.done);
+  if (available.length === 0) return;
+  if (isRolling) return;
+  showDiceOverlay(available);
+}
+
+function showDiceOverlay(pool) {
+  // Create overlay if not exists
+  let overlay = document.getElementById('dice-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'dice-overlay';
+    overlay.innerHTML = `
+      <div class="dice-card">
+        <div class="dice-close" onclick="closeDice()"><i data-lucide="x"></i></div>
+        <div class="dice-icon-wrap" id="dice-icon-wrap" onclick="rerollDice()">
+          <i data-lucide="dices"></i>
+        </div>
+        <div class="dice-result-title" id="dice-result-title">摇一摇...</div>
+        <div class="dice-result-desc" id="dice-result-desc"></div>
+        <div class="dice-result-tag" id="dice-result-tag"></div>
+        <div class="dice-actions" id="dice-actions" style="display:none;">
+          <button class="btn-full btn-primary" onclick="confirmDiceDay('周六')">周六做</button>
+          <button class="btn-full" style="background:var(--surface-dark);color:var(--on-dark);" onclick="confirmDiceDay('周日')">周日做</button>
+        </div>
+      </div>
+    `;
+    document.querySelector('.app-container').appendChild(overlay);
+  }
+  overlay.style.display = 'flex';
+  overlay.onclick = (e) => { if (e.target === overlay) closeDice(); };
+  window._dicePool = pool;
+  rollDice(pool);
+}
+
+function rollDice(pool) {
+  isRolling = true;
+  const iconWrap = document.getElementById('dice-icon-wrap');
+  const titleEl = document.getElementById('dice-result-title');
+  const descEl = document.getElementById('dice-result-desc');
+  const tagEl = document.getElementById('dice-result-tag');
+
+  // Hide actions during roll
+  var actionsEl = document.getElementById('dice-actions');
+  if (actionsEl) actionsEl.style.display = 'none';
+
+  // Start rolling animation
+  iconWrap.classList.add('rolling');
+  titleEl.textContent = '摇一摇...';
+  descEl.textContent = '';
+  tagEl.textContent = '';
+
+  // Simulate dice rolling with rapid text flicker
+  let flickCount = 0;
+  const flickInterval = setInterval(() => {
+    const randItem = pool[Math.floor(Math.random() * pool.length)];
+    titleEl.textContent = randItem.title;
+    titleEl.style.opacity = '0.5';
+    flickCount++;
+    if (flickCount > 8) {
+      clearInterval(flickInterval);
+      // Final pick
+      const finalPick = pool[Math.floor(Math.random() * pool.length)];
+      window._dicePick = finalPick;
+      setTimeout(() => {
+        iconWrap.classList.remove('rolling');
+        iconWrap.classList.add('landed');
+        titleEl.textContent = finalPick.title;
+        titleEl.style.opacity = '1';
+        descEl.textContent = finalPick.desc || '';
+        tagEl.textContent = finalPick.tag;
+        isRolling = false;
+        // Show action buttons
+        var actionsEl = document.getElementById('dice-actions');
+        if (actionsEl) actionsEl.style.display = 'flex';
+        // Remove landed class after animation
+        setTimeout(() => iconWrap.classList.remove('landed'), 500);
+      }, 200);
+    }
+  }, 120);
+  lucide.createIcons();
+}
+
+function rerollDice() {
+  if (isRolling) return;
+  rollDice(window._dicePool || markItems.filter(i => !i.inPlan && !i.done));
+}
+
+function confirmDiceDay(day) {
+  if (!window._dicePick) return;
+  window._dicePick.inPlan = true;
+  window._dicePick.planDay = day;
+  renderPlanList();
+  renderMarkList();
+  closeDice();
+}
+
+function closeDice() {
+  const overlay = document.getElementById('dice-overlay');
+  if (overlay) overlay.style.display = 'none';
+  isRolling = false;
+}
+
+// Review
+function prevWeek() {
+  currentWeekLabel = '5月17日 - 5月18日';
+  document.getElementById('review-date').textContent = currentWeekLabel;
+  document.getElementById('stat-done').textContent = '2';
+  document.getElementById('stat-skip').textContent = '2';
+  renderWeekNote();
+}
+
+function nextWeek() {
+  currentWeekLabel = '5月24日 - 5月25日';
+  document.getElementById('review-date').textContent = currentWeekLabel;
+  document.getElementById('stat-done').textContent = '3';
+  document.getElementById('stat-skip').textContent = '1';
+  renderWeekNote();
+}
+
+// Rating
+function selectRating(el) {
+  document.querySelectorAll('.rating-emoji').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('note-area').classList.add('visible');
+}
+
+function updateCount() {
+  const ta = document.getElementById('note-textarea');
+  document.getElementById('note-count').textContent = `${ta.value.length}/600`;
+}
+
+// Per-week save state
+let weekNotes = {}; // key: weekLabel, value: {emoji, text}
+let currentWeekLabel = '5月17日 - 5月18日';
+
+function saveNote() {
+  const ta = document.getElementById('note-textarea');
+  const noteText = ta.value.trim();
+  const selectedEmoji = document.querySelector('.rating-emoji.selected');
+  const emojiText = selectedEmoji ? selectedEmoji.textContent : '';
+
+  // Save to per-week state
+  weekNotes[currentWeekLabel] = { emoji: emojiText, text: noteText };
+  noteSaved = true;
+  showStickyNote(emojiText, noteText);
+}
+
+function showStickyNote(emoji, text) {
+  const ratingSection = document.querySelector('.rating-section');
+  ratingSection.innerHTML = '<div class="sticky-note">' +
+    '<div class="sticky-note-header">' +
+      '<div class="sticky-note-emoji">' + emoji + '</div>' +
+      '<div class="sticky-note-edit" onclick="editNote()"><i data-lucide="pencil"></i></div>' +
+    '</div>' +
+    '<div class="sticky-note-text">' + (text || '没有留下小记') + '</div>' +
+    '</div>';
+  lucide.createIcons();
+}
+
+function editNote() {
+  const data = weekNotes[currentWeekLabel];
+  noteSaved = false;
+  const ratingSection = document.querySelector('.rating-section');
+  const emojis = ['😫','😐','🙂','😄','🤩'];
+  const emojiHtml = emojis.map(e => '<div class="rating-emoji" onclick="selectRating(this)">' + e + '</div>').join('');
+  ratingSection.innerHTML = '<div class="rating-title">这个周末感觉怎么样？</div>' +
+    '<div class="rating-options">' + emojiHtml + '</div>' +
+    '<div class="note-area visible" id="note-area">' +
+      '<textarea class="note-textarea" id="note-textarea" placeholder="记录一下这个周末..." maxlength="600"></textarea>' +
+      '<div class="note-footer"><span class="note-count"><span id="char-count">0</span>/600</span>' +
+      '<button class="btn-save" id="btn-save-note" onclick="saveNote()">保存</button></div>' +
+    '</div>';
+  if (data) {
+    const allEmojis = document.querySelectorAll('.rating-emoji');
+    allEmojis.forEach(el => { if (el.textContent === data.emoji) el.classList.add('selected'); });
+    document.getElementById('note-textarea').value = data.text || '';
+    document.getElementById('char-count').textContent = (data.text || '').length;
+  }
+  const ta = document.getElementById('note-textarea');
+  ta.addEventListener('input', function() {
+    document.getElementById('char-count').textContent = ta.value.length;
+  });
+}
+
+function renderWeekNote() {
+  const data = weekNotes[currentWeekLabel];
+  if (data) {
+    noteSaved = true;
+    showStickyNote(data.emoji, data.text);
+  } else {
+    noteSaved = false;
+    const ratingSection = document.querySelector('.rating-section');
+    const emojis = ['😫','😐','🙂','😄','🤩'];
+    const emojiHtml = emojis.map(e => '<div class="rating-emoji" data-score="' + (emojis.indexOf(e)+1) + '" onclick="selectRating(this)">' + e + '</div>').join('');
+    ratingSection.innerHTML = '<div class="rating-title">这个周末感觉怎么样？</div>' +
+      '<div class="rating-options">' + emojiHtml + '</div>' +
+      '<div class="note-area" id="note-area">' +
+        '<textarea class="note-textarea" id="note-textarea" placeholder="记录一下这个周末..." maxlength="600"></textarea>' +
+        '<div class="note-footer"><span class="note-count"><span id="char-count">0</span>/600</span>' +
+        '<button class="btn-save" id="btn-save-note" onclick="saveNote()">保存</button></div>' +
+      '</div>';
+  }
+}
+
+// Modal helpers
+function showModal(id) {
+  document.getElementById(id).classList.add('visible');
+}
+
+function hideModal(id) {
+  document.getElementById(id).classList.remove('visible');
+}
+
+function closeModal(e, id) {
+  if (e.target === document.getElementById(id)) {
+    hideModal(id);
+  }
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
