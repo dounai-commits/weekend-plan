@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>美好周末</title>
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -46,10 +46,12 @@ body {
   width: 100%;
   max-width: 430px;
   height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   background: var(--canvas);
   overflow: hidden;
   position: relative;
+  touch-action: pan-y;
 }
 
 .app-container {
@@ -944,8 +946,23 @@ body {
 }
 .form-img-hotzone:hover { border-color: var(--primary); }
 .form-img-hotzone i { width: 16px; height: 16px; color: var(--muted); }
-.form-img-hotzone.has-img { border-style: solid; border-color: var(--primary); }
+.form-img-hotzone.has-img { border-style: solid; border-color: var(--primary); position: relative; }
 .form-img-hotzone.has-img img { width: 100%; height: 100%; object-fit: cover; }
+.form-img-clear {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+.form-img-clear i { width: 10px; height: 10px; color: white; }
 
 .form-tags {
   display: flex;
@@ -1317,7 +1334,7 @@ body {
             <button class="schedule-opt selected" data-plan="none" onclick="selectSchedule(this)">先收着</button>
           </div>
         </div>
-        <button class="btn-submit" onclick="submitAdd()">Mark 一下</button>
+        <button class="btn-submit" id="btn-submit-add" onclick="submitAdd()">Mark 一下</button>
       </div>
     </div>
   </div>
@@ -1616,10 +1633,27 @@ function editFromDetail() {
   if (selectedDetailItem) {
     setTimeout(function() {
       openAddModal();
+      editingItemId = selectedDetailItem.id;
       document.getElementById('add-name').value = selectedDetailItem.title;
       document.getElementById('add-desc').value = selectedDetailItem.desc || '';
       selectedFormTag = selectedDetailItem.tag;
       renderFormTags();
+      // Restore image if exists
+      if (selectedDetailItem.img) {
+        window._formImgData = selectedDetailItem.img;
+        const hz = document.getElementById('form-img-hotzone');
+        hz.classList.add('has-img');
+        hz.innerHTML = '<img src="' + selectedDetailItem.img + '" /><div class="form-img-clear" onclick="clearFormImg(event)"><i data-lucide="x"></i></div>';
+        lucide.createIcons();
+      }
+      // Restore schedule
+      if (selectedDetailItem.inPlan && selectedDetailItem.planDay) {
+        selectedSchedule = selectedDetailItem.planDay;
+        document.querySelectorAll('.schedule-opt').forEach(o => {
+          o.classList.toggle('selected', o.getAttribute('data-plan') === selectedDetailItem.planDay);
+        });
+      }
+      document.getElementById('btn-submit-add').textContent = '确认修改';
     }, 350);
   }
 }
@@ -1635,14 +1669,24 @@ function addToPlanDay(day) {
 }
 
 // Add Modal
+let editingItemId = null; // track if we're editing
+
 function openAddModal() {
-  // Reset image state
+  // Reset state
+  editingItemId = null;
   window._formImgData = null;
   const hz = document.getElementById('form-img-hotzone');
   if (hz) {
     hz.classList.remove('has-img');
     hz.innerHTML = '<i data-lucide="image"></i>';
   }
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-desc').value = '';
+  selectedFormTag = null;
+  selectedSchedule = 'none';
+  document.querySelectorAll('.schedule-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelector('.schedule-opt[data-plan="none"]').classList.add('selected');
+  document.getElementById('btn-submit-add').textContent = 'Mark 一下';
   renderFormTags();
   showModal('add-modal');
   lucide.createIcons();
@@ -1656,9 +1700,20 @@ function handleFormImg(input) {
     window._formImgData = e.target.result;
     const hz = document.getElementById('form-img-hotzone');
     hz.classList.add('has-img');
-    hz.innerHTML = '<img src="' + e.target.result + '" />';
+    hz.innerHTML = '<img src="' + e.target.result + '" /><div class="form-img-clear" onclick="clearFormImg(event)"><i data-lucide="x"></i></div>';
+    lucide.createIcons();
   };
   reader.readAsDataURL(file);
+}
+
+function clearFormImg(e) {
+  e.stopPropagation();
+  window._formImgData = null;
+  const hz = document.getElementById('form-img-hotzone');
+  hz.classList.remove('has-img');
+  hz.innerHTML = '<i data-lucide="image"></i>';
+  document.getElementById('form-img-input').value = '';
+  lucide.createIcons();
 }
 
 function renderFormTags() {
@@ -1686,20 +1741,40 @@ function submitAdd() {
   const desc = document.getElementById('add-desc').value.trim();
   if (!name) return;
 
-  const newItem = {
-    id: Date.now(),
-    title: name,
-    desc: desc || '',
-    tag: selectedFormTag || '其他',
-    icon: 'star',
-    meta: '刚刚收藏',
-    img: window._formImgData || null,
-    inPlan: selectedSchedule !== 'none',
-    planDay: selectedSchedule !== 'none' ? selectedSchedule : null,
-    done: false
-  };
+  if (editingItemId) {
+    // Edit existing item
+    const item = markItems.find(i => i.id === editingItemId);
+    if (item) {
+      item.title = name;
+      item.desc = desc || '';
+      item.tag = selectedFormTag || item.tag;
+      if (window._formImgData) item.img = window._formImgData;
+      if (selectedSchedule !== 'none') {
+        item.inPlan = true;
+        item.planDay = selectedSchedule;
+      } else {
+        item.inPlan = false;
+        item.planDay = null;
+      }
+    }
+    editingItemId = null;
+  } else {
+    // Create new item
+    const newItem = {
+      id: Date.now(),
+      title: name,
+      desc: desc || '',
+      tag: selectedFormTag || '其他',
+      icon: 'star',
+      meta: '刚刚收藏',
+      img: window._formImgData || null,
+      inPlan: selectedSchedule !== 'none',
+      planDay: selectedSchedule !== 'none' ? selectedSchedule : null,
+      done: false
+    };
+    markItems.push(newItem);
+  }
 
-  markItems.push(newItem);
   renderMarkList();
   renderPlanList();
   hideModal('add-modal');
