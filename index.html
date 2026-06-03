@@ -1478,9 +1478,20 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   width: 100%;
-  gap: 16px;
+}
+.dice-content .dice-icon-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dice-result-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .dice-icon-wrap {
@@ -1560,6 +1571,8 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   width: 100%;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .dice-actions .inspiration-btn {
@@ -2726,9 +2739,11 @@ function showDiceOverlay(pool) {
           <div class="dice-icon-wrap" id="dice-icon-wrap" onclick="rerollDice()">
             <i data-lucide="dices"></i>
           </div>
-          <div class="dice-result-title" id="dice-result-title">摇一摇...</div>
-          <div class="dice-result-desc" id="dice-result-desc"></div>
-          <div class="dice-result-tag" id="dice-result-tag"></div>
+          <div class="dice-result-wrap">
+            <div class="dice-result-title" id="dice-result-title">摇一摇...</div>
+            <div class="dice-result-desc" id="dice-result-desc"></div>
+            <div class="dice-result-tag" id="dice-result-tag"></div>
+          </div>
           <div class="dice-actions" id="dice-actions" style="display:none;">
             <button class="inspiration-btn primary" onclick="confirmDiceDay('周六')">周六做</button>
             <button class="inspiration-btn primary" onclick="confirmDiceDay('周日')">周日做</button>
@@ -2761,9 +2776,8 @@ function rollDice(pool) {
   // Start rolling animation - dice takes over full space
   iconWrap.classList.remove('hidden');
   iconWrap.classList.add('rolling');
-  titleEl.style.display = 'block';
-  titleEl.textContent = '摇一摇...';
-  titleEl.style.opacity = '0.5';
+  const resultWrap = document.querySelector('.dice-result-wrap');
+  resultWrap.style.display = 'none';
   descEl.textContent = '';
   tagEl.textContent = '';
 
@@ -2782,7 +2796,8 @@ function rollDice(pool) {
         iconWrap.classList.remove('rolling');
         iconWrap.classList.add('landed');
         iconWrap.classList.add('hidden');
-        titleEl.style.display = 'block';
+        const resultWrap = document.querySelector('.dice-result-wrap');
+        resultWrap.style.display = 'flex';
         titleEl.textContent = finalPick.title;
         titleEl.style.opacity = '1';
         descEl.textContent = finalPick.desc || '';
