@@ -1462,7 +1462,7 @@ let selectedFormTag = null;
 let selectedSchedule = 'none';
 let noteSaved = false;
 
-const allTags = ['全部', '运动', '影音', '探店', '学习', '出行', '其他'];
+const allTags = ['全部', '运动', '影音', '探店', '学习', '出行', '家务', '购物', '其他'];
 
 
 // === localStorage Persistence ===
@@ -2009,7 +2009,7 @@ function clearFormImg(e) {
 
 function renderFormTags() {
   const container = document.getElementById('form-tags');
-  const tags = ['运动', '影音', '探店', '学习', '出行', '其他', '家务', '购物'];
+  const tags = ['运动', '影音', '探店', '学习', '出行', '家务', '购物', '其他'];
   container.innerHTML = tags.map(tag => `
     <button class="form-tag ${tag === selectedFormTag ? 'selected' : ''}" onclick="selectFormTag(event, '${tag}')">${tag}</button>
   `).join('');
