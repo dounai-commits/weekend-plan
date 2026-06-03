@@ -914,6 +914,24 @@ body {
   justify-content: space-between;
   margin-bottom: 20px;
 }
+.icon-btn-sm {
+  width: 30px;
+  height: 30px;
+}
+.icon-btn-sm i { width: 16px; height: 16px; }
+
+.detail-img-wrap {
+  width: 100%;
+  height: 180px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.detail-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .sheet-meta {
   font-size: 13px;
@@ -1382,8 +1400,9 @@ body {
         <div class="sheet-handle"></div>
         <div class="sheet-top-row">
           <div class="icon-btn" onclick="hideModal('detail-modal')"><i data-lucide="x"></i></div>
-          <div class="icon-btn" onclick="editFromDetail()"><i data-lucide="pencil"></i></div>
+          <div class="icon-btn icon-btn-sm" onclick="editFromDetail()"><i data-lucide="pencil"></i></div>
         </div>
+        <div class="detail-img-wrap" id="detail-img-wrap" style="display:none;"></div>
         <div class="sheet-title" id="detail-title">标题</div>
         <div class="sheet-desc" id="detail-desc">描述</div>
         <div class="sheet-meta" id="detail-meta"></div>
@@ -1715,7 +1734,7 @@ function renderPlanList() {
         '<div class="plan-checkbox ' + checkedClass + '" onclick="toggleDone(event, ' + item.id + ')">' + checkInner + '</div>' +
         '<div class="plan-icon">' + (item.img ? '<img src="' + item.img + '" alt="">' : '<i data-lucide="' + item.icon + '"></i>') + '</div>' +
         '<div class="plan-info"><div class="plan-title">' + item.title + '</div>' +
-        '<div class="plan-meta">' + item.meta + ' · ' + item.tag + '</div></div>' +
+        '<div class="plan-meta">' + formatListMeta(item) + ' · ' + item.tag + '</div></div>' +
         '<div class="plan-arrow"><i data-lucide="chevron-right"></i></div></div>';
     });
   }
@@ -1729,7 +1748,7 @@ function renderPlanList() {
         '<div class="plan-checkbox ' + checkedClass + '" onclick="toggleDone(event, ' + item.id + ')">' + checkInner + '</div>' +
         '<div class="plan-icon">' + (item.img ? '<img src="' + item.img + '" alt="">' : '<i data-lucide="' + item.icon + '"></i>') + '</div>' +
         '<div class="plan-info"><div class="plan-title">' + item.title + '</div>' +
-        '<div class="plan-meta">' + item.meta + ' · ' + item.tag + '</div></div>' +
+        '<div class="plan-meta">' + formatListMeta(item) + ' · ' + item.tag + '</div></div>' +
         '<div class="plan-arrow"><i data-lucide="chevron-right"></i></div></div>';
     });
   }
@@ -1779,7 +1798,7 @@ function renderMarkList() {
       </div>
       <div class="mark-info">
         <div class="mark-item-title">${item.title}</div>
-        <div class="mark-item-meta">${item.meta} · ${item.tag}</div>
+        <div class="mark-item-meta">${formatListMeta(item)} · ${item.tag}</div>
       </div>
       <div class="mark-arrow"><i data-lucide="chevron-right"></i></div>
     </div>
@@ -1809,14 +1828,62 @@ function switchTab(el) {
 
 // Detail Modal
 let detailMode = 'mark'; // 'mark' or 'plan'
+
+function formatDetailMeta(item) {
+  let dateStr = '';
+  if (item.createdAt) {
+    const d = new Date(item.createdAt);
+    const now = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    if (d.getFullYear() !== now.getFullYear()) {
+      dateStr = d.getFullYear() + '-' + mm + '-' + dd;
+    } else {
+      dateStr = mm + '-' + dd;
+    }
+  } else {
+    dateStr = item.meta || '刚刚收藏';
+  }
+  if (item.inPlan && item.planDay) {
+    return '已安排在本' + item.planDay + ' · 收藏于' + dateStr;
+  } else {
+    return '收藏于' + dateStr;
+  }
+}
+
+function formatListMeta(item) {
+  let dateStr = '';
+  if (item.createdAt) {
+    const d = new Date(item.createdAt);
+    const now = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    if (d.getFullYear() !== now.getFullYear()) {
+      dateStr = d.getFullYear() + '-' + mm + '-' + dd;
+    } else {
+      dateStr = mm + '-' + dd;
+    }
+    return '收藏于' + dateStr;
+  }
+  return item.meta || '刚刚收藏';
+}
+
 function showDetail(id) {
   const item = markItems.find(i => i.id === id);
   if (!item) return;
   selectedDetailItem = item;
   detailMode = 'mark';
+  // Image
+  const imgWrap = document.getElementById('detail-img-wrap');
+  if (item.img) {
+    imgWrap.innerHTML = '<img src="' + item.img + '" alt="">';
+    imgWrap.style.display = 'block';
+  } else {
+    imgWrap.style.display = 'none';
+  }
   document.getElementById('detail-title').textContent = item.title;
   document.getElementById('detail-desc').textContent = item.desc;
-  document.getElementById('detail-meta').innerHTML = '<i data-lucide="clock"></i> ' + item.meta;
+  document.getElementById('detail-meta').innerHTML = '<i data-lucide="clock"></i> ' + formatDetailMeta(item);
   document.getElementById('detail-tag').textContent = item.tag;
   // Show plan day buttons for Mark items
   document.getElementById('detail-btn-sat').style.display = '';
@@ -1831,9 +1898,17 @@ function openPlanDetail(id) {
   if (!item) return;
   selectedDetailItem = item;
   detailMode = 'plan';
+  // Image
+  const imgWrap = document.getElementById('detail-img-wrap');
+  if (item.img) {
+    imgWrap.innerHTML = '<img src="' + item.img + '" alt="">';
+    imgWrap.style.display = 'block';
+  } else {
+    imgWrap.style.display = 'none';
+  }
   document.getElementById('detail-title').textContent = item.title;
   document.getElementById('detail-desc').textContent = item.desc;
-  document.getElementById('detail-meta').innerHTML = '<i data-lucide="calendar"></i> 已安排在' + item.planDay + ' · ' + item.tag;
+  document.getElementById('detail-meta').innerHTML = '<i data-lucide="calendar"></i> ' + formatDetailMeta(item);
   document.getElementById('detail-tag').textContent = item.tag;
   // Hide plan day buttons for Plan items (already in plan)
   document.getElementById('detail-btn-sat').style.display = 'none';
@@ -1999,6 +2074,7 @@ function submitAdd() {
       tag: selectedFormTag || '其他',
       icon: tagToIcon(selectedFormTag || '其他'),
       meta: '刚刚收藏',
+      createdAt: Date.now(),
       img: window._formImgData || null,
       inPlan: selectedSchedule !== 'none',
       planDay: selectedSchedule !== 'none' ? selectedSchedule : null,
