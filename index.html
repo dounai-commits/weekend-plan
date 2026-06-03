@@ -1269,7 +1269,7 @@ body {
 .dice-card {
   width: 100%;
   max-width: 320px;
-  min-height: 340px;
+  height: 360px;
   background: var(--surface-card);
   border-radius: 16px;
   padding: 48px 24px 28px;
@@ -1279,7 +1279,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
 .dice-header {
@@ -1304,29 +1303,30 @@ body {
 }
 .dice-close:active { opacity: 0.8; }
 .dice-close i { width: 14px; height: 14px; }
-  align-items: center;
 
+.dice-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
 
 .dice-icon-wrap {
   width: 140px;
   height: 140px;
-  margin: 16px auto;
   background: var(--canvas);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s, opacity 0.3s;
+  transition: transform 0.3s, opacity 0.2s;
 }
 .dice-icon-wrap i { color: var(--primary); width: 64px; height: 64px; }
 .dice-icon-wrap { cursor: pointer; }
-.dice-icon-wrap:hover { background: var(--hairline-soft); }
 .dice-icon-wrap.hidden {
-  opacity: 0;
-  height: 0;
-  margin: 0;
-  pointer-events: none;
-  overflow: hidden;
+  display: none;
 }
 
 .dice-reroll-hint {
@@ -2460,16 +2460,18 @@ function showDiceOverlay(pool) {
           <div class="inspiration-badge"><i data-lucide="dices"></i> 随机挑战</div>
           <div class="dice-close" onclick="closeDice()"><i data-lucide="x"></i></div>
         </div>
-        <div class="dice-icon-wrap" id="dice-icon-wrap" onclick="rerollDice()">
-          <i data-lucide="dices"></i>
-        </div>
-        <div class="dice-result-title" id="dice-result-title">摇一摇...</div>
-        <div class="dice-result-desc" id="dice-result-desc"></div>
-        <div class="dice-result-tag" id="dice-result-tag"></div>
-        <div class="dice-actions" id="dice-actions" style="display:none;">
-          <button class="inspiration-btn primary" onclick="confirmDiceDay('周六')">周六做</button>
-          <button class="inspiration-btn primary" onclick="confirmDiceDay('周日')">周日做</button>
-          <button class="inspiration-btn secondary" onclick="rerollDice()">换一个</button>
+        <div class="dice-content">
+          <div class="dice-icon-wrap" id="dice-icon-wrap" onclick="rerollDice()">
+            <i data-lucide="dices"></i>
+          </div>
+          <div class="dice-result-title" id="dice-result-title">摇一摇...</div>
+          <div class="dice-result-desc" id="dice-result-desc"></div>
+          <div class="dice-result-tag" id="dice-result-tag"></div>
+          <div class="dice-actions" id="dice-actions" style="display:none;">
+            <button class="inspiration-btn primary" onclick="confirmDiceDay('周六')">周六做</button>
+            <button class="inspiration-btn primary" onclick="confirmDiceDay('周日')">周日做</button>
+            <button class="inspiration-btn secondary" onclick="rerollDice()">换一个</button>
+          </div>
         </div>
       </div>
     `;
