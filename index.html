@@ -1322,7 +1322,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-.dice-icon-wrap i { color: var(--primary); width: 120px; height: 120px; }
+.dice-icon-wrap i, .dice-icon-wrap svg { color: var(--primary); width: 120px; height: 120px; }
 .dice-icon-wrap { cursor: pointer; }
 .dice-icon-wrap.hidden {
   display: none;
@@ -2498,7 +2498,9 @@ function rollDice(pool) {
   // Start rolling animation - dice takes over full space
   iconWrap.classList.remove('hidden');
   iconWrap.classList.add('rolling');
-  titleEl.style.display = 'none';
+  titleEl.style.display = 'block';
+  titleEl.textContent = '摇一摇...';
+  titleEl.style.opacity = '0.5';
   descEl.textContent = '';
   tagEl.textContent = '';
 
