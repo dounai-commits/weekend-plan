@@ -303,13 +303,31 @@ body {
   margin-bottom: 24px;
 }
 
-/* Inspiration Card */
+/* Inspiration Overlay */
+#inspiration-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+#inspiration-overlay.visible {
+  display: flex;
+}
 .inspiration-card {
   background: var(--surface-card);
-  border: 1px solid var(--hairline-soft);
-  border-radius: var(--radius-card);
-  padding: 20px;
-  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 320px;
+  animation: cardPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes cardPop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 .inspiration-header {
   display: flex;
@@ -1397,21 +1415,6 @@ body {
           </div>
         </div>
 
-        <!-- 灵感推荐 -->
-        <div class="inspiration-card" id="inspiration-card">
-          <div class="inspiration-header">
-            <div class="inspiration-badge"><i data-lucide="sparkles"></i> 灵感</div>
-            <div class="inspiration-close" onclick="hideInspiration()"><i data-lucide="x"></i></div>
-          </div>
-          <div class="inspiration-body">
-            <div class="inspiration-title" id="inspiration-title">加载中...</div>
-            <div class="inspiration-reason" id="inspiration-reason"></div>
-          </div>
-          <div class="inspiration-actions">
-            <button class="inspiration-btn primary" onclick="adoptInspiration()">试试看</button>
-            <button class="inspiration-btn secondary" onclick="refreshInspiration()">换一个</button>
-          </div>
-        </div>
 
         <div class="section-header-row">
           <div class="section-title">本周末计划</div>
@@ -1490,9 +1493,6 @@ body {
     <!-- FAB buttons (only in Mark tab) -->
     <div class="fab-container" id="fab-container" style="display:none;">
       <button class="fab fab-primary" onclick="openAddModal()"><i data-lucide="plus"></i></button>
-    </div>
-    <div class="fab-left" id="fab-left" style="display:none;">
-      <button class="fab fab-secondary" onclick="randomPick()"><i data-lucide="dices"></i></button>
     </div>
 
     <!-- Tab Bar -->
@@ -1742,10 +1742,9 @@ function renderInspiration(item) {
 }
 
 function refreshInspiration() {
-  // Animate out
-  const card = document.getElementById('inspiration-card');
+  const card = document.querySelector('.inspiration-card');
   card.style.opacity = '0.5';
-  card.style.transform = 'scale(0.98)';
+  card.style.transform = 'scale(0.97)';
   card.style.transition = 'all 0.2s';
   setTimeout(() => {
     generateInspiration();
@@ -1756,37 +1755,54 @@ function refreshInspiration() {
 
 function adoptInspiration() {
   if (!currentInspiration) return;
-  openAddModal();
+  hideInspiration();
   setTimeout(() => {
-    document.getElementById('add-name').value = currentInspiration.title;
-    document.getElementById('add-desc').value = currentInspiration.reason;
-    selectedFormTag = currentInspiration.tag;
-    renderFormTags();
-  }, 100);
+    openAddModal();
+    setTimeout(() => {
+      document.getElementById('add-name').value = currentInspiration.title;
+      document.getElementById('add-desc').value = currentInspiration.reason;
+      selectedFormTag = currentInspiration.tag;
+      renderFormTags();
+    }, 100);
+  }, 200);
 }
 
 function toggleInspiration() {
-  const card = document.getElementById('inspiration-card');
-  if (card.style.display === 'none') {
-    card.style.display = 'block';
-    generateInspiration();
-  } else {
-    card.style.display = 'block';
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    refreshInspiration();
+  showInspirationOverlay();
+}
+
+function showInspirationOverlay() {
+  let overlay = document.getElementById('inspiration-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'inspiration-overlay';
+    overlay.innerHTML = `
+      <div class="inspiration-card">
+        <div class="inspiration-header">
+          <div class="inspiration-badge"><i data-lucide="sparkles"></i> 灵感</div>
+          <div class="inspiration-close" onclick="hideInspiration()"><i data-lucide="x"></i></div>
+        </div>
+        <div class="inspiration-body">
+          <div class="inspiration-title" id="inspiration-title"></div>
+          <div class="inspiration-reason" id="inspiration-reason"></div>
+        </div>
+        <div class="inspiration-actions">
+          <button class="inspiration-btn primary" onclick="adoptInspiration()">试试看</button>
+          <button class="inspiration-btn secondary" onclick="refreshInspiration()">换一个</button>
+        </div>
+      </div>
+    `;
+    overlay.onclick = function(e) { if (e.target === overlay) hideInspiration(); };
+    document.querySelector('.app-container').appendChild(overlay);
   }
+  generateInspiration();
+  overlay.classList.add('visible');
+  lucide.createIcons();
 }
 
 function hideInspiration() {
-  const card = document.getElementById('inspiration-card');
-  card.style.transition = 'all 0.25s ease';
-  card.style.opacity = '0';
-  card.style.transform = 'scale(0.95)';
-  setTimeout(() => {
-    card.style.display = 'none';
-    card.style.opacity = '1';
-    card.style.transform = 'scale(1)';
-  }, 250);
+  const overlay = document.getElementById('inspiration-overlay');
+  if (overlay) overlay.classList.remove('visible');
 }
 
 function showToast(msg) {
@@ -1823,7 +1839,6 @@ function startApp() {
   renderTagFilter();
   renderMarkList();
   renderWeekNote();
-  generateInspiration();
   lucide.createIcons();
 }
 
@@ -1987,8 +2002,6 @@ function fetchWeather(lat, lon) {
         days[1].querySelector('.weather-icon').innerHTML = `<i data-lucide="${sunIcon}"></i>`;
       }
       lucide.createIcons();
-      // Refresh inspiration with real weather data
-      generateInspiration();
     })
     .catch(e => console.log('Weather fetch failed:', e));
 }
@@ -2118,13 +2131,10 @@ function switchTab(el) {
 
   // Show/hide FABs
   const fabContainer = document.getElementById('fab-container');
-  const fabLeft = document.getElementById('fab-left');
   if (tabId === 'tab-mark') {
     fabContainer.style.display = 'flex';
-    fabLeft.style.display = 'block';
   } else {
     fabContainer.style.display = 'none';
-    fabLeft.style.display = 'none';
   }
 }
 
