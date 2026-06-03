@@ -1321,9 +1321,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s;
 }
-.dice-icon-wrap i { color: var(--primary); width: 80px; height: 80px; }
+.dice-icon-wrap i { color: var(--primary); width: 120px; height: 120px; }
 .dice-icon-wrap { cursor: pointer; }
 .dice-icon-wrap.hidden {
   display: none;
@@ -1338,11 +1337,11 @@ body {
   animation: diceRoll 0.5s ease-in-out infinite;
 }
 @keyframes diceRoll {
-  0% { transform: rotate(0deg) scale(1.4); }
-  25% { transform: rotate(90deg) scale(1.6); }
-  50% { transform: rotate(180deg) scale(1.4); }
-  75% { transform: rotate(270deg) scale(1.6); }
-  100% { transform: rotate(360deg) scale(1.4); }
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.15); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
 /* Landed bounce */
@@ -2496,11 +2495,10 @@ function rollDice(pool) {
   const badge = document.querySelector('#dice-overlay .inspiration-badge');
   if (badge) badge.style.opacity = '0';
 
-  // Start rolling animation
+  // Start rolling animation - dice takes over full space
   iconWrap.classList.remove('hidden');
   iconWrap.classList.add('rolling');
-  titleEl.textContent = '摇一摇...';
-  titleEl.style.opacity = '1';
+  titleEl.style.display = 'none';
   descEl.textContent = '';
   tagEl.textContent = '';
 
@@ -2519,6 +2517,7 @@ function rollDice(pool) {
         iconWrap.classList.remove('rolling');
         iconWrap.classList.add('landed');
         iconWrap.classList.add('hidden');
+        titleEl.style.display = 'block';
         titleEl.textContent = finalPick.title;
         titleEl.style.opacity = '1';
         descEl.textContent = finalPick.desc || '';
