@@ -55,6 +55,82 @@ body {
   touch-action: manipulation;
 }
 
+/* Onboarding */
+#onboarding-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--canvas);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.onboarding-card {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+.onboarding-emoji {
+  font-size: 56px;
+  margin-bottom: 24px;
+}
+.onboarding-title {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.8px;
+  margin-bottom: 8px;
+}
+.onboarding-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.onboarding-input {
+  width: 100%;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  padding: 16px;
+  border: 1.5px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: var(--font-body);
+}
+.onboarding-input:focus {
+  border-color: var(--primary);
+}
+.onboarding-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+.onboarding-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--surface-dark);
+  color: var(--on-dark);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.onboarding-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.onboarding-btn:not(:disabled):active {
+  opacity: 0.8;
+}
+
 .phone-frame {
   width: 100%;
   max-width: 430px;
@@ -134,7 +210,9 @@ body {
   color: var(--ink);
   letter-spacing: -1px;
   margin-bottom: 8px;
-  line-height: 1.1;
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .icon-btn {
@@ -1374,6 +1452,7 @@ function saveToStorage() {
   const data = {
     markItems: markItems,
     weekNotes: weekNotes,
+    nickname: window._userNickname || '',
     version: 2
   };
   try {
@@ -1394,6 +1473,9 @@ function loadFromStorage() {
       if (data.weekNotes && typeof data.weekNotes === 'object') {
         weekNotes = data.weekNotes;
       }
+      if (data.nickname) {
+        window._userNickname = data.nickname;
+      }
       return true;
     }
   } catch(e) {
@@ -1406,6 +1488,15 @@ function loadFromStorage() {
 // Init
 function init() {
   loadFromStorage();
+  // Check if first launch (no nickname)
+  if (!window._userNickname) {
+    showOnboarding();
+    return;
+  }
+  startApp();
+}
+
+function startApp() {
   setGreeting();
   setCountdown();
   loadWeather();
@@ -1416,13 +1507,70 @@ function init() {
   lucide.createIcons();
 }
 
+function showOnboarding() {
+  // Create onboarding overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'onboarding-overlay';
+  overlay.innerHTML = `
+    <div class="onboarding-card">
+      <div class="onboarding-emoji">\u2600\uFE0F</div>
+      <div class="onboarding-title">\u6B22\u8FCE\u4F7F\u7528\u7F8E\u597D\u5468\u672B</div>
+      <div class="onboarding-subtitle">\u544A\u8BC9\u6211\u4F60\u7684\u6635\u79F0\u5427</div>
+      <input type="text" id="onboarding-input" class="onboarding-input" placeholder="\u8F93\u5165\u6635\u79F0" maxlength="10" autocomplete="off">
+      <div class="onboarding-hint"><span id="onboarding-count">0</span>/10</div>
+      <button class="onboarding-btn" id="onboarding-btn" disabled onclick="confirmNickname()">\u5F00\u59CB\u7F8E\u597D\u5468\u672B</button>
+    </div>
+  `;
+  document.querySelector('.app-container').appendChild(overlay);
+  const input = document.getElementById('onboarding-input');
+  const btn = document.getElementById('onboarding-btn');
+  input.addEventListener('input', function() {
+    const val = input.value;
+    if (val.length > 10) {
+      input.value = val.slice(0, 10);
+    }
+    document.getElementById('onboarding-count').textContent = input.value.length;
+    btn.disabled = input.value.trim().length === 0;
+  });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && input.value.trim()) confirmNickname();
+  });
+  // Request location permission first, then focus input
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      () => { input.focus(); },
+      () => { input.focus(); },
+      { timeout: 5000 }
+    );
+  } else {
+    input.focus();
+  }
+}
+
+function confirmNickname() {
+  const input = document.getElementById('onboarding-input');
+  const name = input.value.trim().slice(0, 10);
+  if (!name) return;
+  window._userNickname = name;
+  saveToStorage();
+  // Remove overlay with animation
+  const overlay = document.getElementById('onboarding-overlay');
+  overlay.style.opacity = '0';
+  overlay.style.transition = 'opacity 0.3s';
+  setTimeout(() => {
+    overlay.remove();
+    startApp();
+  }, 300);
+}
+
 function setGreeting() {
   const h = new Date().getHours();
   let period = '早上';
   if (h >= 12 && h < 14) period = '中午';
   else if (h >= 14 && h < 18) period = '下午';
   else if (h >= 18) period = '晚上';
-  document.getElementById('greeting').textContent = `Hi 豆奶同学，${period}好～`;
+  const name = window._userNickname || '朋友';
+  document.getElementById('greeting').textContent = `Hi ${name}，${period}好～`;
 }
 
 function setCountdown() {
