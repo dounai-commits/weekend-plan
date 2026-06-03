@@ -1074,6 +1074,7 @@ body {
 .modal-overlay.visible { display: flex; }
 
 .bottom-sheet {
+  position: relative;
   width: 100%;
   max-height: 75%;
   background: white;
@@ -1107,6 +1108,37 @@ body {
   height: 30px;
 }
 .icon-btn-sm i { width: 16px; height: 16px; }
+
+.detail-delete-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.detail-delete-btn:active { opacity: 1; }
+.detail-delete-btn i, .detail-delete-btn svg { width: 18px; height: 18px; color: var(--muted); }
+
+.detail-edit-fab {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: transform 0.2s;
+}
+.detail-edit-fab:active { transform: scale(0.92); }
+.detail-edit-fab i, .detail-edit-fab svg { width: 18px; height: 18px; color: var(--on-dark); }
 
 .detail-img-wrap {
   width: 100%;
@@ -1602,7 +1634,7 @@ body {
         <div class="sheet-handle"></div>
         <div class="sheet-top-row">
           <div class="icon-btn" onclick="hideModal('detail-modal')"><i data-lucide="x"></i></div>
-          <div class="icon-btn icon-btn-sm" onclick="editFromDetail()"><i data-lucide="pencil"></i></div>
+          <div class="detail-delete-btn" onclick="deleteFromDetail()"><i data-lucide="trash-2"></i></div>
         </div>
         <div class="detail-img-wrap" id="detail-img-wrap" style="display:none;"></div>
         <div class="sheet-title" id="detail-title">标题</div>
@@ -1613,6 +1645,7 @@ body {
           <button class="btn-full btn-primary" id="detail-btn-sat" onclick="addToPlanDay('周六')">周六做</button>
           <button class="btn-full" style="background:var(--surface-dark);color:var(--on-dark);" id="detail-btn-sun" onclick="addToPlanDay('周日')">周日做</button>
         </div>
+        <div class="detail-edit-fab" onclick="editFromDetail()"><i data-lucide="pencil"></i></div>
       </div>
     </div>
 
@@ -2347,6 +2380,16 @@ function openPlanDetail(id) {
   document.getElementById('detail-actions').style.display = 'none';
   showModal('detail-modal');
   lucide.createIcons();
+}
+
+function deleteFromDetail() {
+  if (!selectedDetailItem) return;
+  if (!confirm('确定要删除这个 Mark 吗？')) return;
+  markItems = markItems.filter(i => i.id !== selectedDetailItem.id);
+  saveToStorage();
+  hideModal('detail-modal');
+  renderMarkList();
+  renderPlanList();
 }
 
 function editFromDetail() {
