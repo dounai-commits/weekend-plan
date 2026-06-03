@@ -247,8 +247,8 @@ body {
 .weather-card {
   background: transparent;
   border-radius: 0;
-  padding: 0 0 24px 0;
-  margin-bottom: 40px;
+  padding: 0 0 16px 0;
+  margin-bottom: 24px;
   display: flex;
   gap: 0;
   border-bottom: 0.5px solid var(--hairline);
@@ -279,16 +279,14 @@ body {
 
 .weather-day .temp {
   font-family: var(--font-heading);
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--ink);
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
 }
 
 .weather-day .desc {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 6px;
+  display: none;
 }
 
 .weather-divider {
@@ -1588,37 +1586,59 @@ let currentInspiration = null;
 
 const inspirationPool = [
   // 运动
-  { title: '晚间慢跑 3公里', tag: '运动', reason: '周末不加班的晚上，当然要用来出汗啊～', weather: 'sunny' },
-  { title: '跑一场公园 Frisbee', tag: '运动', reason: '天气好就要去户外撥盘子！', weather: 'sunny' },
-  { title: '试试室内攻防尔美美', tag: '运动', reason: '下雨天也能流汗的选择，揢一拳就精神了', weather: 'rainy' },
-  { title: '约朋友打羽毛球', tag: '运动', reason: '双人运动不孤单，输了请奶茶', weather: 'any' },
-  { title: '早起做一组智加', tag: '运动', reason: '周末的身体也需要被叫醒鸿', weather: 'any' },
+  { title: '晚间慢跑 3 公里', tag: '运动', reason: '用出汗结束一周的疲惫，回来洗个澡超爽', weather: 'sunny' },
+  { title: '去公园丢飞盘', tag: '运动', reason: '阳光+草地+飞盘，快乐就是这么简单', weather: 'sunny' },
+  { title: '试试室内攀岩', tag: '运动', reason: '下雨天也能燃起来，爬到顶的成就感爆棚', weather: 'rainy' },
+  { title: '约朋友打羽毛球', tag: '运动', reason: '输了请奶茶，赢了也请奶茶', weather: 'any' },
+  { title: '跟着B站跳一支舞', tag: '运动', reason: '关上门就是自己的舞台，没人看随便浪', weather: 'any' },
+  { title: '骑车去没去过的路', tag: '运动', reason: '不赶路的时候，骑车才叫骑车', weather: 'sunny' },
+  { title: '去游泳池泡着', tag: '运动', reason: '不用游也行，泡在水里本身就很治愈', weather: 'sunny' },
+  { title: '做一组晨间拉伸', tag: '运动', reason: '把身体从周一到周五的僵硬里拯救出来', weather: 'any' },
   // 影音
-  { title: '看一部豆瓣 8.5+ 电影', tag: '影音', reason: '下雨天 + 毯子 + 电影 = 完美周末公式', weather: 'rainy' },
-  { title: '开一场一个人的音乐会', tag: '影音', reason: '戴上耳机关上灯，假装自己在 livehouse', weather: 'any' },
-  { title: '刮一张黑胶片听', tag: '影音', reason: '慢下来的周末，配得上模拟信号的温度', weather: 'any' },
+  { title: '看一部豆瓣 8.5+ 电影', tag: '影音', reason: '下雨天+毯子+电影=完美周末公式', weather: 'rainy' },
+  { title: '戴耳机听一整张专辑', tag: '影音', reason: '从第一首听到最后一首，体验音乐人的完整表达', weather: 'any' },
+  { title: '看一集不用动脑的综艺', tag: '影音', reason: '周末的大脑需要放假，让别人逗你笑', weather: 'any' },
+  { title: '翻出老歌单循环播放', tag: '影音', reason: '有些歌会把你带回某个特别的时刻', weather: 'rainy' },
+  { title: '看一部短片合集', tag: '影音', reason: '20分钟一个故事，不用担心追不完', weather: 'any' },
+  { title: '找一场线上 live 看', tag: '影音', reason: '不出门也能感受现场的氛围', weather: 'rainy' },
   // 探店
-  { title: '去附近新开的咖啡店坐坐', tag: '探店', reason: '周末就是要在陌生的店里假装本地人', weather: 'any' },
-  { title: '探索一个没去过的商场', tag: '探店', reason: '不为买东西，就为感受“我在逋街”的快乐', weather: 'sunny' },
-  { title: '找一家评分很高但很隐蔽的小店', tag: '探店', reason: '探店的快乐就在于“居然被我发现了”', weather: 'any' },
+  { title: '去一家没去过的咖啡店', tag: '探店', reason: '每家店的拿铁都有自己的性格', weather: 'any' },
+  { title: '探索一条没走过的巷子', tag: '探店', reason: '最好的店往往藏在地图搜不到的地方', weather: 'sunny' },
+  { title: '找一家评分很高的苍蝇馆', tag: '探店', reason: '排队也愿意的味道，才叫宝藏', weather: 'any' },
+  { title: '去书店坐一下午', tag: '探店', reason: '不买书也没关系，闻闻纸墨味就够了', weather: 'rainy' },
+  { title: '尝一种没吃过的菜系', tag: '探店', reason: '嘴巴也需要冒险，万一打开新世界呢', weather: 'any' },
+  { title: '找家有猫的店待一会儿', tag: '探店', reason: '撸别人家的猫，快乐不用负责', weather: 'any' },
   // 学习
-  { title: '学一道新菜', tag: '学习', reason: '周末大厨上线，给自己做顷好的', weather: 'rainy' },
-  { title: '看 30 分钟纪录片', tag: '学习', reason: '不是学习，是“有质量地发呆”', weather: 'any' },
-  { title: '整理一下本周的笔记和想法', tag: '学习', reason: '让脑子里的碎片变成拼图', weather: 'any' },
+  { title: '学一道新菜', tag: '学习', reason: '给自己做顿好的，是最实在的自我犒赏', weather: 'rainy' },
+  { title: '看30分钟纪录片', tag: '学习', reason: '不是学习，是有质量地发呆', weather: 'any' },
+  { title: '整理本周的灵感和想法', tag: '学习', reason: '散落的碎片拼起来，说不定就是个好点子', weather: 'any' },
+  { title: '学三个新单词的地道用法', tag: '学习', reason: '不多学，就三个，记住了就是赚到', weather: 'any' },
+  { title: '画一幅随手涂鸦', tag: '学习', reason: '画得丑也是艺术，重点是动笔的过程', weather: 'rainy' },
+  { title: '研究一个一直好奇的问题', tag: '学习', reason: '终于有时间满足自己的好奇心了', weather: 'any' },
   // 出行
-  { title: '去公园野餐', tag: '出行', reason: '天气这么好，不出门就亨了', weather: 'sunny' },
-  { title: '坐公交到终点站看看', tag: '出行', reason: '没有目的地的出行，才是真正的散步', weather: 'any' },
-  { title: '去河边/海边走走', tag: '出行', reason: '看水发呆是人类最原始的充电方式', weather: 'sunny' },
+  { title: '去公园铺块布野餐', tag: '出行', reason: '阳光免费、微风免费、快乐也免费', weather: 'sunny' },
+  { title: '坐公交到终点站看看', tag: '出行', reason: '没有目的地的出发，才叫真正的散心', weather: 'any' },
+  { title: '去河边或湖边走走', tag: '出行', reason: '看水发呆是人类最原始的充电方式', weather: 'sunny' },
+  { title: '爬一座小山看日落', tag: '出行', reason: '日落不等人，但等你出发', weather: 'sunny' },
+  { title: '找个从没去过的地铁站出来逛', tag: '出行', reason: '同一座城市，换个出口就是新世界', weather: 'any' },
+  { title: '骑车去最近的湿地公园', tag: '出行', reason: '大自然的绿色是最好的屏幕替代品', weather: 'sunny' },
   // 家务
-  { title: '给房间来个大扫除', tag: '家务', reason: '下雨天在家 = 完美打扫日，干净的房间治愈一切', weather: 'rainy' },
-  { title: '整理衣柜换季', tag: '家务', reason: '把不穿的收起来，穿的亮出来，开心', weather: 'any' },
+  { title: '给房间来个大扫除', tag: '家务', reason: '干净的房间能治愈90%的坏心情', weather: 'rainy' },
+  { title: '整理衣柜换季', tag: '家务', reason: '断舍离之后，打开衣柜的心情都不一样', weather: 'any' },
+  { title: '换一套新床单', tag: '家务', reason: '今晚躺上去的那一刻，你会感谢自己', weather: 'any' },
+  { title: '清理冰箱过期食物', tag: '家务', reason: '给冰箱减负，也给自己的生活减负', weather: 'rainy' },
   // 购物
-  { title: '逃一次周末市集', tag: '购物', reason: '买不买无所谓，主要是感受烟火气', weather: 'sunny' },
+  { title: '逛一次周末市集', tag: '购物', reason: '不为买东西，就为感受人间烟火气', weather: 'sunny' },
   { title: '给自己买束花', tag: '购物', reason: '不需要理由，花本身就是理由', weather: 'any' },
+  { title: '去超市认真挑一瓶好酒', tag: '购物', reason: '周末的夜晚值得一点仪式感', weather: 'any' },
+  { title: '买一本一直想看的书', tag: '购物', reason: '纸质书拿在手里的感觉，kindle给不了', weather: 'rainy' },
   // 其他
-  { title: '给朋友写一张明信片', tag: '其他', reason: '慢速度的联系，比微信有温度多了', weather: 'any' },
-  { title: '拍一组手机摄影', tag: '其他', reason: '用周末的光线记录用周末的心情', weather: 'sunny' },
-  { title: '写一篇小日记', tag: '其他', reason: '跟自己聊聊天，也是一种社交', weather: 'any' },
+  { title: '给很久没联系的朋友发条消息', tag: '其他', reason: '不用想太多，一句"最近怎样"就够了', weather: 'any' },
+  { title: '拍一组手机街拍', tag: '其他', reason: '用镜头记录周末的光影，普通也是风景', weather: 'sunny' },
+  { title: '写一篇小日记', tag: '其他', reason: '和自己聊聊天，也是一种休息', weather: 'any' },
+  { title: '什么都不做地发呆半小时', tag: '其他', reason: '允许自己放空，不产出也是一种产出', weather: 'any' },
+  { title: '给手机相册做个整理', tag: '其他', reason: '翻到那些截图和照片，会想起很多美好', weather: 'rainy' },
+  { title: '尝试冥想十分钟', tag: '其他', reason: '闭上眼，什么都不想，比想象中难但舒服', weather: 'any' },
 ];
 
 let currentWeatherType = 'any'; // 'sunny', 'rainy', 'any'
@@ -1889,6 +1909,8 @@ function fetchWeather(lat, lon) {
         days[1].querySelector('.weather-icon').innerHTML = `<i data-lucide="${sunIcon}"></i>`;
       }
       lucide.createIcons();
+      // Refresh inspiration with real weather data
+      generateInspiration();
     })
     .catch(e => console.log('Weather fetch failed:', e));
 }
