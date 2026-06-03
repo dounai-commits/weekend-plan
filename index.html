@@ -1315,11 +1315,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s;
+  transition: transform 0.3s, opacity 0.3s;
 }
 .dice-icon-wrap i { color: var(--primary); width: 56px; height: 56px; }
 .dice-icon-wrap { cursor: pointer; }
 .dice-icon-wrap:hover { background: var(--hairline-soft); }
+.dice-icon-wrap.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 
 .dice-reroll-hint {
   display: none;
@@ -2487,7 +2491,7 @@ function rollDice(pool) {
   if (badge) badge.style.opacity = '0';
 
   // Start rolling animation
-  iconWrap.style.display = 'flex';
+  iconWrap.classList.remove('hidden');
   iconWrap.classList.add('rolling');
   titleEl.textContent = '摇一摇...';
   titleEl.style.opacity = '1';
@@ -2508,7 +2512,7 @@ function rollDice(pool) {
       setTimeout(() => {
         iconWrap.classList.remove('rolling');
         iconWrap.classList.add('landed');
-        iconWrap.style.display = 'none';
+        iconWrap.classList.add('hidden');
         titleEl.textContent = finalPick.title;
         titleEl.style.opacity = '1';
         descEl.textContent = finalPick.desc || '';
