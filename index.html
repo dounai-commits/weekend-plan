@@ -1524,16 +1524,29 @@ function showOnboarding() {
   document.querySelector('.app-container').appendChild(overlay);
   const input = document.getElementById('onboarding-input');
   const btn = document.getElementById('onboarding-btn');
+  let isComposing = false;
+  input.addEventListener('compositionstart', function() {
+    isComposing = true;
+  });
+  input.addEventListener('compositionend', function() {
+    isComposing = false;
+    // Truncate after composition completes
+    if (input.value.length > 10) {
+      input.value = input.value.slice(0, 10);
+    }
+    document.getElementById('onboarding-count').textContent = input.value.length;
+    btn.disabled = input.value.trim().length === 0;
+  });
   input.addEventListener('input', function() {
-    const val = input.value;
-    if (val.length > 10) {
-      input.value = val.slice(0, 10);
+    if (isComposing) return; // Skip during IME composition
+    if (input.value.length > 10) {
+      input.value = input.value.slice(0, 10);
     }
     document.getElementById('onboarding-count').textContent = input.value.length;
     btn.disabled = input.value.trim().length === 0;
   });
   input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && input.value.trim()) confirmNickname();
+    if (e.key === 'Enter' && !isComposing && input.value.trim()) confirmNickname();
   });
   // Request location permission first, then focus input
   if (navigator.geolocation) {
