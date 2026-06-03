@@ -372,6 +372,7 @@ body {
   align-items: center;
   justify-content: center;
   margin-top: -12px;
+  position: relative;
 }
 .inspiration-icon-wrap i, .inspiration-icon-wrap svg {
   color: #F27149;
@@ -380,21 +381,42 @@ body {
   stroke-width: 1.5;
 }
 .inspiration-icon-wrap.sparkling {
-  animation: sparkleAnim 1.2s ease-in-out;
+  animation: none;
 }
 .inspiration-icon-wrap.sparkling svg,
 .inspiration-icon-wrap.sparkling i {
-  animation: sparkleGlow 0.4s ease-in-out infinite alternate;
+  animation: none;
 }
-@keyframes sparkleAnim {
-  0% { transform: scale(0.3); opacity: 0; filter: blur(4px); }
-  15% { transform: scale(1.3) rotate(20deg); opacity: 1; filter: blur(0); }
-  30% { transform: scale(0.85) rotate(-12deg); opacity: 0.9; }
-  45% { transform: scale(1.15) rotate(8deg); opacity: 1; }
-  55% { transform: scale(1.0) rotate(-5deg); opacity: 0.95; }
-  70% { transform: scale(1.25) rotate(12deg); opacity: 1; }
-  85% { transform: scale(1.05) rotate(-3deg); opacity: 1; }
-  100% { transform: scale(1.0) rotate(0deg); opacity: 0; filter: blur(2px); }
+
+/* Sparkle stars container */
+.sparkle-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.sparkle-star {
+  color: #F27149;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sparkle-star.show {
+  opacity: 1;
+  transform: scale(1);
+}
+.sparkle-star.wiggle {
+  animation: starWiggle 0.5s ease-in-out;
+}
+.sparkle-star:nth-child(1) svg { width: 36px; height: 36px; }
+.sparkle-star:nth-child(2) svg { width: 52px; height: 52px; }
+.sparkle-star:nth-child(3) svg { width: 36px; height: 36px; }
+@keyframes starWiggle {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.15) rotate(10deg); }
+  50% { transform: scale(0.95) rotate(-8deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 @keyframes sparkleGlow {
   from { color: #F27149; }
@@ -1869,20 +1891,33 @@ function playInspirationAnimation() {
 
   // Show icon animation, hide result
   iconWrap.style.display = 'flex';
-  iconWrap.classList.add('sparkling');
   result.style.display = 'none';
   actions.style.display = 'none';
   if (badge) badge.style.opacity = '0';
 
-  // After animation, show result
+  // Create stars
+  iconWrap.innerHTML = `
+    <div class="sparkle-stars">
+      <div class="sparkle-star" id="star1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/></svg></div>
+      <div class="sparkle-star" id="star2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/></svg></div>
+      <div class="sparkle-star" id="star3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/></svg></div>
+    </div>
+  `;
+
+  // Sequence: 1 star → 2 stars → 3 stars → wiggle → result
+  setTimeout(() => document.getElementById('star2').classList.add('show'), 100);
+  setTimeout(() => document.getElementById('star1').classList.add('show'), 400);
+  setTimeout(() => document.getElementById('star3').classList.add('show'), 700);
   setTimeout(() => {
-    iconWrap.classList.remove('sparkling');
+    document.querySelectorAll('.sparkle-star').forEach(s => s.classList.add('wiggle'));
+  }, 1000);
+  setTimeout(() => {
     iconWrap.style.display = 'none';
     generateInspiration();
     result.style.display = 'block';
     actions.style.display = 'flex';
     if (badge) badge.style.opacity = '1';
-  }, 1200);
+  }, 1500);
 }
 
 function hideInspiration() {
