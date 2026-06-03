@@ -305,6 +305,69 @@ body {
   margin-bottom: 24px;
 }
 
+/* Inspiration Card */
+.inspiration-card {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  margin-bottom: 32px;
+}
+.inspiration-header {
+  margin-bottom: 12px;
+}
+.inspiration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #F27149;
+  background: #FFF3EE;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+.inspiration-badge i { width: 12px; height: 12px; }
+.inspiration-body {
+  margin-bottom: 16px;
+}
+.inspiration-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.inspiration-reason {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.inspiration-actions {
+  display: flex;
+  gap: 10px;
+}
+.inspiration-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.inspiration-btn:active { opacity: 0.7; }
+.inspiration-btn.primary {
+  background: var(--surface-dark);
+  color: var(--on-dark);
+}
+.inspiration-btn.secondary {
+  background: var(--hairline-soft);
+  color: var(--muted);
+}
+
 .section-header-row .section-title {
   margin-bottom: 0;
 }
@@ -1297,6 +1360,21 @@ body {
           </div>
         </div>
 
+        <!-- 灵感推荐 -->
+        <div class="inspiration-card" id="inspiration-card">
+          <div class="inspiration-header">
+            <div class="inspiration-badge"><i data-lucide="sparkles"></i> 灵感</div>
+          </div>
+          <div class="inspiration-body">
+            <div class="inspiration-title" id="inspiration-title">加载中...</div>
+            <div class="inspiration-reason" id="inspiration-reason"></div>
+          </div>
+          <div class="inspiration-actions">
+            <button class="inspiration-btn primary" onclick="adoptInspiration()">试试看</button>
+            <button class="inspiration-btn secondary" onclick="refreshInspiration()">换一个</button>
+          </div>
+        </div>
+
         <div class="section-header-row">
           <div class="section-title">本周末计划</div>
           <div class="header-actions">
@@ -1505,6 +1583,129 @@ function loadFromStorage() {
 }
 // === End localStorage ===
 
+// === Inspiration Engine ===
+let currentInspiration = null;
+
+const inspirationPool = [
+  // 运动
+  { title: '晚间慢跑 3公里', tag: '运动', reason: '周末不加班的晚上，当然要用来出汗啊～', weather: 'sunny' },
+  { title: '跑一场公园 Frisbee', tag: '运动', reason: '天气好就要去户外撥盘子！', weather: 'sunny' },
+  { title: '试试室内攻防尔美美', tag: '运动', reason: '下雨天也能流汗的选择，揢一拳就精神了', weather: 'rainy' },
+  { title: '约朋友打羽毛球', tag: '运动', reason: '双人运动不孤单，输了请奶茶', weather: 'any' },
+  { title: '早起做一组智加', tag: '运动', reason: '周末的身体也需要被叫醒鸿', weather: 'any' },
+  // 影音
+  { title: '看一部豆瓣 8.5+ 电影', tag: '影音', reason: '下雨天 + 毯子 + 电影 = 完美周末公式', weather: 'rainy' },
+  { title: '开一场一个人的音乐会', tag: '影音', reason: '戴上耳机关上灯，假装自己在 livehouse', weather: 'any' },
+  { title: '刮一张黑胶片听', tag: '影音', reason: '慢下来的周末，配得上模拟信号的温度', weather: 'any' },
+  // 探店
+  { title: '去附近新开的咖啡店坐坐', tag: '探店', reason: '周末就是要在陌生的店里假装本地人', weather: 'any' },
+  { title: '探索一个没去过的商场', tag: '探店', reason: '不为买东西，就为感受“我在逋街”的快乐', weather: 'sunny' },
+  { title: '找一家评分很高但很隐蔽的小店', tag: '探店', reason: '探店的快乐就在于“居然被我发现了”', weather: 'any' },
+  // 学习
+  { title: '学一道新菜', tag: '学习', reason: '周末大厨上线，给自己做顷好的', weather: 'rainy' },
+  { title: '看 30 分钟纪录片', tag: '学习', reason: '不是学习，是“有质量地发呆”', weather: 'any' },
+  { title: '整理一下本周的笔记和想法', tag: '学习', reason: '让脑子里的碎片变成拼图', weather: 'any' },
+  // 出行
+  { title: '去公园野餐', tag: '出行', reason: '天气这么好，不出门就亨了', weather: 'sunny' },
+  { title: '坐公交到终点站看看', tag: '出行', reason: '没有目的地的出行，才是真正的散步', weather: 'any' },
+  { title: '去河边/海边走走', tag: '出行', reason: '看水发呆是人类最原始的充电方式', weather: 'sunny' },
+  // 家务
+  { title: '给房间来个大扫除', tag: '家务', reason: '下雨天在家 = 完美打扫日，干净的房间治愈一切', weather: 'rainy' },
+  { title: '整理衣柜换季', tag: '家务', reason: '把不穿的收起来，穿的亮出来，开心', weather: 'any' },
+  // 购物
+  { title: '逃一次周末市集', tag: '购物', reason: '买不买无所谓，主要是感受烟火气', weather: 'sunny' },
+  { title: '给自己买束花', tag: '购物', reason: '不需要理由，花本身就是理由', weather: 'any' },
+  // 其他
+  { title: '给朋友写一张明信片', tag: '其他', reason: '慢速度的联系，比微信有温度多了', weather: 'any' },
+  { title: '拍一组手机摄影', tag: '其他', reason: '用周末的光线记录用周末的心情', weather: 'sunny' },
+  { title: '写一篇小日记', tag: '其他', reason: '跟自己聊聊天，也是一种社交', weather: 'any' },
+];
+
+let currentWeatherType = 'any'; // 'sunny', 'rainy', 'any'
+
+function getWeatherType() {
+  // Determine from rendered weather
+  const desc = document.querySelector('.weather-day .desc');
+  if (desc) {
+    const text = desc.textContent;
+    if (text.includes('雨') || text.includes('雷')) return 'rainy';
+    if (text.includes('晴') || text.includes('云')) return 'sunny';
+  }
+  return 'any';
+}
+
+function generateInspiration() {
+  currentWeatherType = getWeatherType();
+  
+  // Get user's existing tags to personalize
+  const userTags = markItems.map(i => i.tag);
+  
+  // Filter pool: match weather + avoid duplicates with existing marks
+  const existingTitles = markItems.map(i => i.title.toLowerCase());
+  let candidates = inspirationPool.filter(item => {
+    if (existingTitles.includes(item.title.toLowerCase())) return false;
+    if (item.weather === 'any') return true;
+    if (item.weather === currentWeatherType) return true;
+    if (currentWeatherType === 'any') return true;
+    return false;
+  });
+  
+  // Boost items matching user's preferred tags
+  if (userTags.length > 0) {
+    const tagCounts = {};
+    userTags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+    candidates.sort((a, b) => {
+      return (tagCounts[b.tag] || 0) - (tagCounts[a.tag] || 0) + Math.random() - 0.5;
+    });
+  } else {
+    // Shuffle
+    candidates.sort(() => Math.random() - 0.5);
+  }
+  
+  if (candidates.length === 0) candidates = inspirationPool.sort(() => Math.random() - 0.5);
+  
+  // Pick one different from current
+  let pick = candidates[0];
+  if (currentInspiration && candidates.length > 1 && pick.title === currentInspiration.title) {
+    pick = candidates[1];
+  }
+  
+  currentInspiration = pick;
+  renderInspiration(pick);
+}
+
+function renderInspiration(item) {
+  document.getElementById('inspiration-title').textContent = item.title;
+  document.getElementById('inspiration-reason').textContent = item.reason;
+  lucide.createIcons();
+}
+
+function refreshInspiration() {
+  // Animate out
+  const card = document.getElementById('inspiration-card');
+  card.style.opacity = '0.5';
+  card.style.transform = 'scale(0.98)';
+  card.style.transition = 'all 0.2s';
+  setTimeout(() => {
+    generateInspiration();
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+  }, 200);
+}
+
+function adoptInspiration() {
+  if (!currentInspiration) return;
+  // Open add modal with pre-filled content
+  openAddModal();
+  setTimeout(() => {
+    document.getElementById('add-name').value = currentInspiration.title;
+    document.getElementById('add-desc').value = currentInspiration.reason;
+    selectedFormTag = currentInspiration.tag;
+    renderFormTags();
+  }, 100);
+}
+// === End Inspiration ===
+
 // Init
 function init() {
   loadFromStorage();
@@ -1524,6 +1725,7 @@ function startApp() {
   renderTagFilter();
   renderMarkList();
   renderWeekNote();
+  generateInspiration();
   lucide.createIcons();
 }
 
