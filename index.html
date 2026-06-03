@@ -312,8 +312,23 @@ body {
   margin-bottom: 32px;
 }
 .inspiration-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
+.inspiration-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+.inspiration-close:active { opacity: 0.8; }
+.inspiration-close i { width: 14px; height: 14px; }
 .inspiration-badge {
   display: inline-flex;
   align-items: center;
@@ -364,6 +379,30 @@ body {
 .inspiration-btn.secondary {
   background: var(--hairline-soft);
   color: var(--muted);
+}
+
+/* Toast */
+#app-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(29, 29, 31, 0.88);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 16px 24px;
+  border-radius: var(--radius-card);
+  text-align: center;
+  white-space: pre-line;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 9999;
+}
+#app-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .section-header-row .section-title {
@@ -1362,6 +1401,7 @@ body {
         <div class="inspiration-card" id="inspiration-card">
           <div class="inspiration-header">
             <div class="inspiration-badge"><i data-lucide="sparkles"></i> 灵感</div>
+            <div class="inspiration-close" onclick="hideInspiration()"><i data-lucide="x"></i></div>
           </div>
           <div class="inspiration-body">
             <div class="inspiration-title" id="inspiration-title">加载中...</div>
@@ -1377,6 +1417,7 @@ body {
           <div class="section-title">本周末计划</div>
           <div class="header-actions">
             <div class="icon-btn" onclick="openAddModal()"><i data-lucide="plus"></i></div>
+            <div class="icon-btn" onclick="toggleInspiration()"><i data-lucide="sparkles"></i></div>
             <div class="icon-btn" onclick="randomPick()"><i data-lucide="dices"></i></div>
           </div>
         </div>
@@ -1715,7 +1756,6 @@ function refreshInspiration() {
 
 function adoptInspiration() {
   if (!currentInspiration) return;
-  // Open add modal with pre-filled content
   openAddModal();
   setTimeout(() => {
     document.getElementById('add-name').value = currentInspiration.title;
@@ -1723,6 +1763,44 @@ function adoptInspiration() {
     selectedFormTag = currentInspiration.tag;
     renderFormTags();
   }, 100);
+}
+
+function toggleInspiration() {
+  const card = document.getElementById('inspiration-card');
+  if (card.style.display === 'none') {
+    card.style.display = 'block';
+    generateInspiration();
+  } else {
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    refreshInspiration();
+  }
+}
+
+function hideInspiration() {
+  const card = document.getElementById('inspiration-card');
+  card.style.transition = 'all 0.25s ease';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.95)';
+  setTimeout(() => {
+    card.style.display = 'none';
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+  }, 250);
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    document.querySelector('.app-container').appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  setTimeout(() => {
+    toast.classList.remove('visible');
+  }, 2500);
 }
 // === End Inspiration ===
 
@@ -2338,7 +2416,7 @@ let isRolling = false;
 function randomPick() {
   const available = markItems.filter(i => !i.inPlan && !i.done);
   if (available.length === 0) {
-    alert('还没有可选的 Mark，先去收藏几个吧 ✨');
+    showToast('还没有可选的 Mark\n先去收藏几个吧 ✨');
     return;
   }
   if (isRolling) return;
