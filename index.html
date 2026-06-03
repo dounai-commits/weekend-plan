@@ -1269,9 +1269,10 @@ body {
 .dice-card {
   width: 100%;
   max-width: 320px;
+  min-height: 340px;
   background: var(--surface-card);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 48px 24px 28px;
   text-align: center;
   animation: cardPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
@@ -1307,22 +1308,25 @@ body {
 
 
 .dice-icon-wrap {
-  width: 120px;
-  height: 120px;
-  margin: 24px auto;
+  width: 140px;
+  height: 140px;
+  margin: 16px auto;
   background: var(--canvas);
-  border-radius: var(--radius-card);
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s, opacity 0.3s;
 }
-.dice-icon-wrap i { color: var(--primary); width: 56px; height: 56px; }
+.dice-icon-wrap i { color: var(--primary); width: 64px; height: 64px; }
 .dice-icon-wrap { cursor: pointer; }
 .dice-icon-wrap:hover { background: var(--hairline-soft); }
 .dice-icon-wrap.hidden {
   opacity: 0;
+  height: 0;
+  margin: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .dice-reroll-hint {
