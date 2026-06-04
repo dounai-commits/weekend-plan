@@ -1409,6 +1409,14 @@ function editFromDetail() {
     renderFormTags();
     if (selectedDetailItem.planDay) {
       selectedSchedule = selectedDetailItem.planDay;
+      const today = getTodayStr();
+      const tomorrow = formatDateStr(new Date(Date.now() + 86400000));
+      if (selectedSchedule !== today && selectedSchedule !== tomorrow) {
+        const dateInput = document.getElementById('schedule-date-input');
+        dateInput.style.display = 'block';
+        dateInput.value = selectedSchedule;
+        dateInput.onchange = function() { selectedSchedule = this.value; renderScheduleOptions(); };
+      }
     }
     renderScheduleOptions();
     document.getElementById('add-modal-title').textContent = '编辑';
