@@ -2230,8 +2230,8 @@ async function syncFromInbox() {
         meta: '',
         createdAt: m.createdAt || m.id,
         img: m.img || null,
-        inPlan: false,
-        planDay: null,
+        inPlan: !!m.inPlan,
+        planDay: m.planDay || null,
         done: false
       });
       added++;
