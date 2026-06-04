@@ -1,14 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f7f4ed"/>
-      <stop offset="100%" style="stop-color:#eceae4"/>
-    </linearGradient>
-  </defs>
-  <!-- Rounded square background -->
-  <rect width="512" height="512" rx="108" ry="108" fill="#1c1c1c"/>
-  <!-- Bookmark shape -->
-  <path d="M168 96 h176 a24 24 0 0 1 24 24 v312 l-112 -64 l-112 64 V120 a24 24 0 0 1 24 -24z" fill="none" stroke="#f7f4ed" stroke-width="28" stroke-linejoin="round"/>
+  <!-- Warm cream rounded square background -->
+  <rect width="512" height="512" rx="108" ry="108" fill="#f7f4ed"/>
+  <!-- Subtle warm border -->
+  <rect width="512" height="512" rx="108" ry="108" fill="none" stroke="#eceae4" stroke-width="4"/>
+  <!-- Bookmark shape in charcoal -->
+  <path d="M168 96 h176 a24 24 0 0 1 24 24 v312 l-112 -64 l-112 64 V120 a24 24 0 0 1 24 -24z" fill="none" stroke="#1c1c1c" stroke-width="26" stroke-linejoin="round"/>
   <!-- Checkmark inside bookmark -->
-  <polyline points="212,260 248,296 308,220" fill="none" stroke="#f7f4ed" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="212,260 248,296 308,220" fill="none" stroke="#1c1c1c" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
