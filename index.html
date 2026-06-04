@@ -553,14 +553,41 @@ body {
   25% { transform: rotate(-10deg) scale(1.1); }
   75% { transform: rotate(10deg) scale(1.1); }
 }
-.overlay-anim .dice-anim {
+.overlay-anim .dice-icon-wrap {
   width: 80px;
   height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
-.overlay-anim .dice-anim img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.overlay-anim .dice-icon-wrap i,
+.overlay-anim .dice-icon-wrap svg {
+  width: 64px;
+  height: 64px;
+  color: var(--ink);
+  stroke-width: 1.5;
+}
+.overlay-anim .dice-icon-wrap.rolling {
+  animation: diceRoll 0.5s ease-in-out infinite;
+}
+@keyframes diceRoll {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.15); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+.overlay-anim .dice-icon-wrap.landed {
+  animation: diceLand 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes diceLand {
+  0% { transform: scale(1.2) rotate(10deg); }
+  50% { transform: scale(0.9) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.overlay-anim .dice-icon-wrap.hidden {
+  display: none;
 }
 .overlay-result { display: none; text-align: center; }
 .overlay-result-title { font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.3px; }
@@ -1022,11 +1049,13 @@ function playDiceAnimation(pool) {
   result.style.display = 'none';
   actions.style.display = 'none';
 
-  // Dice rolling gif animation
-  animArea.innerHTML = '<div class="dice-anim"><img src="https://media.giphy.com/media/XtESoNon4ufgAjIk6m/giphy.gif" alt="rolling dice"></div>';
+  // Lucide dice icon with CSS rolling animation (same as 美好周末)
+  animArea.innerHTML = '<div class="dice-icon-wrap rolling" id="dice-icon-anim"><i data-lucide="dices"></i></div>';
+  lucide.createIcons();
 
   // Flicker titles during animation
   const titleEl = document.getElementById('overlay-title');
+  titleEl.style.opacity = '0.5';
   let count = 0;
   const interval = setInterval(() => {
     const r = pool[Math.floor(Math.random() * pool.length)];
@@ -1034,14 +1063,19 @@ function playDiceAnimation(pool) {
     count++;
     if (count > 10) {
       clearInterval(interval);
+      const iconWrap = document.getElementById('dice-icon-anim');
+      iconWrap.classList.remove('rolling');
+      iconWrap.classList.add('landed');
       setTimeout(() => {
+        iconWrap.classList.add('hidden');
         animArea.style.display = 'none';
         dicePick = pool[Math.floor(Math.random() * pool.length)];
         document.getElementById('overlay-title').textContent = dicePick.title;
+        titleEl.style.opacity = '1';
         document.getElementById('overlay-reason').textContent = dicePick.desc || ('#' + dicePick.tag);
         result.style.display = 'block';
         actions.style.display = 'flex';
-      }, 200);
+      }, 500);
     }
   }, 120);
 }
