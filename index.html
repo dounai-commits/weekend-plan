@@ -2190,6 +2190,12 @@ async function syncFromInbox() {
     console.log('[Inbox Sync] Skip:', e.message);
   }
 }
+// Sync on page visibility restore (back from background)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    syncFromInbox();
+  }
+});
 // === End Inbox Sync ===
 
 function showOnboarding() {
