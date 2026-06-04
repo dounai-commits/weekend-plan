@@ -2139,6 +2139,44 @@ async function decryptData(encryptedBase64, password) {
   return new TextDecoder().decode(decrypted);
 }
 
+const SYNC_PWD_KEY = 'weekend_sync_pwd';
+
+function getSyncPassword() {
+  return localStorage.getItem(SYNC_PWD_KEY) || null;
+}
+
+function showSyncPasswordPrompt() {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:300px;text-align:center;">
+        <div style="font-size:20px;font-weight:600;margin-bottom:8px;">\u540C\u6B65\u5BC6\u7801</div>
+        <div style="font-size:14px;color:#86868B;margin-bottom:16px;">\u8F93\u5165\u5BC6\u7801\u4EE5\u540C\u6B65\u4F60\u7684 Mark \u6570\u636E</div>
+        <input type="password" id="sync-pwd-input" style="width:100%;font-size:18px;text-align:center;padding:12px;border:1.5px solid #D2D2D7;border-radius:8px;margin-bottom:12px;" placeholder="\u8BF7\u8F93\u5165\u5BC6\u7801">
+        <div id="sync-pwd-error" style="color:#FF3B30;font-size:13px;margin-bottom:12px;display:none;">\u5BC6\u7801\u9519\u8BEF\uFF0C\u8BF7\u91CD\u8BD5</div>
+        <button id="sync-pwd-btn" style="width:100%;padding:12px;background:#1D1D1F;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;">\u786E\u8BA4</button>
+        <button id="sync-pwd-skip" style="width:100%;padding:12px;background:none;border:none;color:#86868B;font-size:14px;margin-top:8px;cursor:pointer;">\u8DF3\u8FC7</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('sync-pwd-btn').onclick = () => {
+      const pwd = document.getElementById('sync-pwd-input').value;
+      if (pwd) {
+        document.body.removeChild(overlay);
+        resolve(pwd);
+      }
+    };
+    document.getElementById('sync-pwd-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('sync-pwd-btn').click();
+    });
+    document.getElementById('sync-pwd-skip').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(null);
+    };
+  });
+}
+
 async function syncFromInbox() {
   try {
     const resp = await fetch(INBOX_URL + '?t=' + Date.now());
@@ -2146,8 +2184,31 @@ async function syncFromInbox() {
     const payload = await resp.json();
     if (!payload || !payload.data) return;
 
-    const password = '980310';
-    const jsonStr = await decryptData(payload.data, password);
+    let password = getSyncPassword();
+    if (!password) {
+      password = await showSyncPasswordPrompt();
+      if (!password) return; // User skipped
+    }
+
+    let jsonStr;
+    try {
+      jsonStr = await decryptData(payload.data, password);
+    } catch(e) {
+      // Wrong password - clear stored and re-prompt
+      localStorage.removeItem(SYNC_PWD_KEY);
+      password = await showSyncPasswordPrompt();
+      if (!password) return;
+      try {
+        jsonStr = await decryptData(payload.data, password);
+      } catch(e2) {
+        showToast('\u5BC6\u7801\u9519\u8BEF');
+        return;
+      }
+    }
+
+    // Password works - save it
+    localStorage.setItem(SYNC_PWD_KEY, password);
+
     const inboxData = JSON.parse(jsonStr);
     if (!inboxData.marks || !inboxData.marks.length) return;
 
@@ -2164,8 +2225,8 @@ async function syncFromInbox() {
         id: m.id,
         title: m.title,
         desc: m.desc || '',
-        tag: m.tag || '其他',
-        icon: tagToIcon(m.tag || '其他'),
+        tag: m.tag || '\u5176\u4ed6',
+        icon: tagToIcon(m.tag || '\u5176\u4ed6'),
         meta: '',
         createdAt: m.createdAt || m.id,
         img: m.img || null,
@@ -2177,16 +2238,14 @@ async function syncFromInbox() {
     }
 
     if (added > 0) {
-      // Update sync watermark
       const maxId = Math.max(...newMarks.map(m => m.id));
       localStorage.setItem(SYNC_KEY, String(maxId));
       saveToStorage();
       renderMarkList();
       renderPlanList();
-      console.log('[Inbox Sync] Added ' + added + ' new marks');
+      showToast('\u540C\u6B65\u4E86 ' + added + ' \u6761\u65B0 Mark \u2728');
     }
   } catch(e) {
-    // Silently fail - offline or no inbox yet
     console.log('[Inbox Sync] Skip:', e.message);
   }
 }
