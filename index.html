@@ -753,7 +753,7 @@ body {
     <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>计划</span>
       <div style="display:flex;gap:12px;align-items:center;">
-        <span style="cursor:pointer;width:26px;height:26px;border:1.5px solid var(--hairline);border-radius:50%;display:flex;align-items:center;justify-content:center;" onclick="openAddModal()" title="添加"><i data-lucide="plus" style="width:14px;height:14px;color:var(--muted);"></i></span>
+        <span style="cursor:pointer;" onclick="openAddModal()" title="添加"><i data-lucide="plus" style="width:18px;height:18px;color:var(--muted);"></i></span>
         <span style="cursor:pointer;" onclick="showInspirationOverlay()" title="灵感"><i data-lucide="sparkles" style="width:18px;height:18px;color:var(--muted);"></i></span>
         <span style="cursor:pointer;" onclick="randomPick()" title="摇骰子"><i data-lucide="dices" style="width:18px;height:18px;color:var(--muted);"></i></span>
       </div>
@@ -970,7 +970,7 @@ function createOverlay(type) {
   overlay.innerHTML = `
     <div class="overlay-card" onclick="event.stopPropagation()">
       <div class="overlay-close" onclick="closeOverlay()"><i data-lucide="x"></i></div>
-      <div class="overlay-badge" id="overlay-badge" style="position:absolute;top:16px;right:16px;font-size:12px;font-weight:500;color:var(--muted);"></div>
+      <div class="overlay-badge" id="overlay-badge" style="position:absolute;top:16px;left:16px;font-size:12px;font-weight:500;color:var(--muted);"></div>
       <div class="overlay-anim" id="overlay-anim"></div>
       <div class="overlay-result" id="overlay-result">
         <div class="overlay-result-title" id="overlay-title"></div>
