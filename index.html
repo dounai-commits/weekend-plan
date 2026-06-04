@@ -1449,11 +1449,28 @@ function openAddModal(defaultDate) {
   document.getElementById('add-name').value = '';
   document.getElementById('add-desc').value = '';
   selectedFormTag = null;
-  selectedSchedule = defaultDate || 'none';
+  const today = getTodayStr();
+  const tomorrow = formatDateStr(new Date(Date.now() + 86400000));
+  if (!defaultDate || defaultDate === 'none') {
+    selectedSchedule = 'none';
+  } else if (defaultDate === today) {
+    selectedSchedule = today;
+  } else if (defaultDate === tomorrow) {
+    selectedSchedule = tomorrow;
+  } else {
+    selectedSchedule = defaultDate;
+  }
   document.getElementById('schedule-date-input').style.display = 'none';
   document.getElementById('add-modal-title').textContent = 'Mark 一下';
   renderFormTags();
   renderScheduleOptions();
+  // If date is not today/tomorrow/none, auto-expand date picker
+  if (defaultDate && defaultDate !== 'none' && defaultDate !== today && defaultDate !== tomorrow) {
+    const dateInput = document.getElementById('schedule-date-input');
+    dateInput.style.display = 'block';
+    dateInput.value = defaultDate;
+    dateInput.onchange = function() { selectedSchedule = this.value; renderScheduleOptions(); };
+  }
   showModal('add-modal');
 }
 
@@ -1472,15 +1489,19 @@ function selectFormTag(tag) {
 function renderScheduleOptions() {
   const today = getTodayStr();
   const tomorrow = formatDateStr(new Date(Date.now() + 86400000));
+  const isCustom = selectedSchedule !== 'none' && selectedSchedule !== today && selectedSchedule !== tomorrow;
   const opts = [
     { label: '不指定', value: 'none' },
     { label: '今天', value: today },
     { label: '明天', value: tomorrow },
     { label: '选日期', value: 'custom' }
   ];
-  document.getElementById('schedule-options').innerHTML = opts.map(o =>
-    `<div class="schedule-btn ${selectedSchedule === o.value ? 'active' : ''}" onclick="selectSchedule('${o.value}')">${o.label}</div>`
-  ).join('');
+  document.getElementById('schedule-options').innerHTML = opts.map(o => {
+    let active = false;
+    if (o.value === 'custom') active = isCustom;
+    else active = selectedSchedule === o.value;
+    return `<div class="schedule-btn ${active ? 'active' : ''}" onclick="selectSchedule('${o.value}')">${o.label}</div>`;
+  }).join('');
 }
 
 function selectSchedule(val) {
