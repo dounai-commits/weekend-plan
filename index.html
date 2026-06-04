@@ -397,6 +397,7 @@ body {
 .form-textarea {
   width: 100%;
   padding: 12px;
+  padding-bottom: 48px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-btn);
   font-size: 14px;
@@ -404,7 +405,7 @@ body {
   background: var(--canvas);
   outline: none;
   resize: none;
-  height: 80px;
+  height: 100px;
 }
 .form-textarea:focus { border-color: var(--hairline-interactive); box-shadow: var(--shadow-focus); }
 .form-desc-area { position: relative; }
@@ -423,6 +424,7 @@ body {
   cursor: pointer;
   overflow: visible;
   transition: all 0.2s;
+  z-index: 2;
 }
 .form-img-hotzone i { width: 16px; height: 16px; color: var(--muted); }
 .form-img-hotzone.has-img { border-style: solid; border-color: var(--hairline-interactive); overflow: visible; }
