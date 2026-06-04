@@ -700,19 +700,21 @@ body {
   color: var(--ink);
 }
 .onboarding-input:focus { border-color: var(--hairline-interactive); box-shadow: var(--shadow-focus); }
-}
 .onboarding-btn {
   width: 100%;
-  padding: 14px;
+  padding: 14px 20px;
   background: var(--ink);
   color: #fcfbf8;
   border: none;
   border-radius: var(--radius-btn);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-inset);
   letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .onboarding-btn:active { opacity: 0.8; }
 .onboarding-btn:disabled { opacity: 0.3; }
@@ -1550,6 +1552,7 @@ function showOnboarding() {
     <div class="onboarding-title">先mark后做</div>
     <div class="onboarding-subtitle">告诉我你的昵称吧</div>
     <input type="text" id="ob-input" class="onboarding-input" placeholder="输入昵称" autocomplete="off">
+    <input type="password" id="ob-password" class="onboarding-input" placeholder="密码（选填，用于同步数据）" autocomplete="off" style="font-size:15px;">
     <button class="onboarding-btn" id="ob-btn" disabled onclick="confirmNickname()">开始使用</button>
   </div>`;
   document.body.appendChild(overlay);
@@ -1566,6 +1569,8 @@ function confirmNickname() {
   const name = document.getElementById('ob-input').value.trim();
   if (!name) return;
   window._userNickname = name;
+  const pwd = document.getElementById('ob-password').value.trim();
+  if (pwd) window._userPassword = pwd;
   saveToStorage();
   document.querySelector('.onboarding').remove();
   startApp();
