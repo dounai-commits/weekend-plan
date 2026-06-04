@@ -407,6 +407,41 @@ body {
   height: 80px;
 }
 .form-textarea:focus { border-color: var(--hairline-interactive); box-shadow: var(--shadow-focus); }
+.form-desc-area { position: relative; }
+.form-img-hotzone {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-btn);
+  border: 0.5px dashed var(--hairline);
+  background: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: visible;
+  transition: all 0.2s;
+}
+.form-img-hotzone i { width: 16px; height: 16px; color: var(--muted); }
+.form-img-hotzone.has-img { border-style: solid; border-color: var(--hairline-interactive); overflow: visible; }
+.form-img-hotzone.has-img img { width: 36px; height: 36px; object-fit: cover; border-radius: var(--radius-btn); display: block; }
+.form-img-clear {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+.form-img-clear i { width: 8px; height: 8px; color: white; stroke-width: 3; }
 .form-tags {
   display: flex;
   flex-wrap: wrap;
@@ -813,7 +848,13 @@ body {
     </div>
     <div class="form-group">
       <div class="form-label">简介（选填）</div>
-      <textarea class="form-textarea" id="add-desc" placeholder="备注..."></textarea>
+      <div class="form-desc-area">
+        <textarea class="form-textarea" id="add-desc" placeholder="备注..."></textarea>
+        <div class="form-img-hotzone" id="form-img-hotzone" onclick="document.getElementById('form-img-input').click()">
+          <i data-lucide="image"></i>
+        </div>
+        <input type="file" id="form-img-input" accept="image/*" style="display:none;" onchange="handleFormImg(this)">
+      </div>
     </div>
     <div class="form-group">
       <div class="form-label">标签</div>
@@ -1407,6 +1448,14 @@ function editFromDetail() {
     document.getElementById('add-desc').value = selectedDetailItem.desc || '';
     selectedFormTag = selectedDetailItem.tag;
     renderFormTags();
+    // Restore image if exists
+    if (selectedDetailItem.img) {
+      window._formImgData = selectedDetailItem.img;
+      const hz = document.getElementById('form-img-hotzone');
+      hz.classList.add('has-img');
+      hz.innerHTML = '<img src="' + selectedDetailItem.img + '" /><div class="form-img-clear" onclick="clearFormImg(event)"><i data-lucide="x"></i></div>';
+      lucide.createIcons();
+    }
     if (selectedDetailItem.planDay) {
       selectedSchedule = selectedDetailItem.planDay;
       const today = getTodayStr();
@@ -1457,6 +1506,11 @@ function openAddModal(defaultDate) {
   document.getElementById('add-name').value = '';
   document.getElementById('add-desc').value = '';
   selectedFormTag = null;
+  window._formImgData = null;
+  const hz = document.getElementById('form-img-hotzone');
+  if (hz) { hz.classList.remove('has-img'); hz.innerHTML = '<i data-lucide="image"></i>'; }
+  const imgInput = document.getElementById('form-img-input');
+  if (imgInput) imgInput.value = '';
   const today = getTodayStr();
   const tomorrow = formatDateStr(new Date(Date.now() + 86400000));
   if (!defaultDate || defaultDate === 'none') {
@@ -1531,6 +1585,31 @@ function tagToIcon(tag) {
   return map[tag] || 'star';
 }
 
+// === Image Upload ===
+function handleFormImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    window._formImgData = e.target.result;
+    const hz = document.getElementById('form-img-hotzone');
+    hz.classList.add('has-img');
+    hz.innerHTML = '<img src="' + e.target.result + '" /><div class="form-img-clear" onclick="clearFormImg(event)"><i data-lucide="x"></i></div>';
+    lucide.createIcons();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearFormImg(e) {
+  e.stopPropagation();
+  window._formImgData = null;
+  const hz = document.getElementById('form-img-hotzone');
+  hz.classList.remove('has-img');
+  hz.innerHTML = '<i data-lucide="image"></i>';
+  document.getElementById('form-img-input').value = '';
+  lucide.createIcons();
+}
+
 function submitAdd() {
   const name = document.getElementById('add-name').value.trim();
   const desc = document.getElementById('add-desc').value.trim();
@@ -1543,6 +1622,8 @@ function submitAdd() {
       item.desc = desc;
       item.tag = selectedFormTag || item.tag;
       item.icon = tagToIcon(item.tag);
+      if (window._formImgData) item.img = window._formImgData;
+      else if (window._formImgData === null && !document.querySelector('#form-img-hotzone.has-img')) item.img = null;
       if (selectedSchedule !== 'none') {
         item.inPlan = true;
         item.planDay = selectedSchedule;
@@ -1560,7 +1641,7 @@ function submitAdd() {
       tag: selectedFormTag || '其他',
       icon: tagToIcon(selectedFormTag || '其他'),
       createdAt: Date.now(),
-      img: null,
+      img: window._formImgData || null,
       inPlan: selectedSchedule !== 'none',
       planDay: selectedSchedule !== 'none' ? selectedSchedule : null,
       done: false,
