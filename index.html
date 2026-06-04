@@ -2214,9 +2214,22 @@ async function syncFromInbox() {
 
     const lastSyncId = parseInt(localStorage.getItem(SYNC_KEY) || '0');
     const newMarks = inboxData.marks.filter(m => m.id > lastSyncId);
-    if (newMarks.length === 0) return;
 
-    // Merge: skip duplicates by title
+    // Also update existing items if inbox has newer plan info
+    let updated = 0;
+    for (const m of inboxData.marks) {
+      if (m.id <= lastSyncId) {
+        const existing = markItems.find(i => i.id === m.id || i.title.toLowerCase() === m.title.toLowerCase());
+        if (existing) {
+          if (m.inPlan && !existing.inPlan) { existing.inPlan = true; existing.planDay = m.planDay; updated++; }
+          if (m.desc && !existing.desc) { existing.desc = m.desc; updated++; }
+        }
+      }
+    }
+
+    if (newMarks.length === 0 && updated === 0) return;
+
+    // Merge new: skip duplicates by title
     const existingTitles = new Set(markItems.map(i => i.title.toLowerCase()));
     let added = 0;
     for (const m of newMarks) {
@@ -2237,13 +2250,15 @@ async function syncFromInbox() {
       added++;
     }
 
-    if (added > 0) {
-      const maxId = Math.max(...newMarks.map(m => m.id));
-      localStorage.setItem(SYNC_KEY, String(maxId));
+    if (added > 0 || updated > 0) {
+      if (newMarks.length > 0) {
+        const maxId = Math.max(...newMarks.map(m => m.id));
+        localStorage.setItem(SYNC_KEY, String(maxId));
+      }
       saveToStorage();
       renderMarkList();
       renderPlanList();
-      showToast('\u540C\u6B65\u4E86 ' + added + ' \u6761\u65B0 Mark \u2728');
+      if (added > 0) showToast('\u540C\u6B65\u4E86 ' + added + ' \u6761\u65B0 Mark \u2728');
     }
   } catch(e) {
     console.log('[Inbox Sync] Skip:', e.message);
