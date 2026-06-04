@@ -970,7 +970,7 @@ function createOverlay(type) {
   overlay.innerHTML = `
     <div class="overlay-card" onclick="event.stopPropagation()">
       <div class="overlay-close" onclick="closeOverlay()"><i data-lucide="x"></i></div>
-      <div class="overlay-badge" id="overlay-badge" style="position:absolute;top:16px;left:16px;font-size:12px;font-weight:500;color:var(--muted);"></div>
+      <div class="overlay-badge" id="overlay-badge" style="position:absolute;top:12px;left:12px;display:flex;align-items:center;height:28px;padding:0 10px;font-size:11px;font-weight:600;color:var(--muted);background:rgba(28,28,28,0.04);border:1px solid var(--hairline);border-radius:var(--radius-pill);letter-spacing:0.3px;"></div>
       <div class="overlay-anim" id="overlay-anim"></div>
       <div class="overlay-result" id="overlay-result">
         <div class="overlay-result-title" id="overlay-title"></div>
