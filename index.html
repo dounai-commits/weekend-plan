@@ -831,6 +831,7 @@ body {
       <div class="date-pick-btn" onclick="planToDate('today')">今天</div>
       <div class="date-pick-btn" onclick="planToDate('tomorrow')">明天</div>
       <div class="date-pick-btn" onclick="showCustomDatePlan()">选日期...</div>
+      <div class="date-pick-btn" onclick="planToDate('none')" style="color:var(--muted);">不指定</div>
       <input type="date" id="custom-plan-date" style="display:none;margin-top:8px;width:100%;padding:12px;border:1.5px solid var(--hairline);border-radius:8px;font-size:15px;" onchange="planToCustomDate(this.value)">
     </div>
   </div>
@@ -1335,6 +1336,16 @@ function planFromDetail() {
 
 function planToDate(which) {
   if (!selectedDetailItem) return;
+  if (which === 'none') {
+    selectedDetailItem.inPlan = false;
+    selectedDetailItem.planDay = null;
+    saveToStorage();
+    hideModal('dateplan-modal');
+    renderPlanList();
+    renderMarkList();
+    showToast('已取消日期安排');
+    return;
+  }
   const today = new Date();
   let target;
   if (which === 'today') target = today;
