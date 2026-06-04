@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>先mark后做</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="先mark后做">
+<meta name="theme-color" content="#F5F5F7">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --canvas: #f7f4ed;
+  --ink: #1c1c1c;
+  --muted: #5f5f5d;
+  --hairline: #eceae4;
+  --hairline-interactive: rgba(28,28,28,0.4);
+  --surface-card: #f7f4ed;
+  --success: #4a9c6d;
+  --accent: #1c1c1c;
+  --radius-btn: 6px;
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+  --shadow-inset: rgba(255,255,255,0.2) 0px 0.5px 0px 0px inset, rgba(0,0,0,0.2) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.05) 0px 1px 2px 0px;
+  --shadow-focus: rgba(0,0,0,0.1) 0px 4px 12px;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  touch-action: pan-y;
+  overscroll-behavior: none;
+}
+* { touch-action: manipulation; }
+
+.app-container {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 72px;
+}
+
+/* Header */
+.header {
+  padding: 24px 20px 12px;
+}
+.greeting {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+/* Week Selector */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-bottom: 8px;
+}
+.week-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.week-nav-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hairline);
+  background: var(--canvas);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.2s;
+}
+.week-nav-btn:active { opacity: 0.8; }
+
+.date-strip {
+  display: flex;
+  padding: 8px 20px 16px;
+  justify-content: space-between;
+  scrollbar-width: none;
+}
+.date-strip::-webkit-scrollbar { display: none; }
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 40px;
+  padding: 8px 6px;
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.date-cell.selected {
+  background: var(--ink);
+  box-shadow: var(--shadow-inset);
+}
+.date-cell .day-name {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.date-cell.selected .day-name { color: rgba(255,255,255,0.6); }
+.date-cell .day-num {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.date-cell.selected .day-num { color: #fcfbf8; }
+.date-cell .today-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ink);
+  position: absolute;
+  bottom: 4px;
+}
+.date-cell.selected .today-dot { background: #fcfbf8; }
+
+/* Weather */
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 16px 20px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.plan-list {
+  padding: 0 20px;
+}
+.plan-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--hairline);
+  cursor: pointer;
+}
+.plan-item:last-child { border-bottom: none; }
+.plan-item.done { opacity: 0.4; }
+.plan-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hairline-interactive);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.plan-checkbox.checked {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fcfbf8;
+}
+.plan-checkbox.checked svg { width: 12px; height: 12px; }
+.plan-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(28,28,28,0.03);
+  border: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.plan-icon img { width: 100%; height: 100%; object-fit: cover; }
+.plan-icon svg { width: 18px; height: 18px; color: var(--muted); }
+.plan-info { flex: 1; min-width: 0; }
+.plan-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.plan-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.plan-arrow { color: var(--hairline); flex-shrink: 0; }
+.plan-arrow svg { width: 16px; height: 16px; }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Mark List */
+.tag-filter {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tag-filter::-webkit-scrollbar { display: none; }
+.tag-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--canvas);
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+  font-weight: 400;
+  transition: all 0.2s;
+}
+.tag-chip.active {
+  background: var(--ink);
+  color: #fcfbf8;
+  border-color: var(--ink);
+  box-shadow: var(--shadow-inset);
+}
+
+.mark-list { padding: 0 20px; }
+.mark-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--hairline);
+  cursor: pointer;
+}
+.mark-item:last-child { border-bottom: none; }
+.mark-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(28,28,28,0.03);
+  border: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.mark-icon img { width: 100%; height: 100%; object-fit: cover; }
+.mark-icon svg { width: 18px; height: 18px; color: var(--muted); }
+.mark-info { flex: 1; min-width: 0; }
+.mark-item-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mark-item-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Tab Bar */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  background: rgba(247,244,237,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--hairline);
+  padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  z-index: 100;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.tab-item.active { color: var(--ink); }
+.tab-item svg { width: 22px; height: 22px; }
+
+/* Tab Panels */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* FAB - fixed bottom right, only in Mark tab */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: calc(50% - 190px);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: #fcfbf8;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-inset);
+  cursor: pointer;
+  z-index: 90;
+}
+.fab:active { opacity: 0.8; }
+.fab svg { width: 22px; height: 22px; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.visible { display: flex; }
+.modal-sheet {
+  width: 100%;
+  max-width: 430px;
+  background: var(--canvas);
+  border-radius: 16px 16px 0 0;
+  border-top: 1px solid var(--hairline);
+  padding: 24px 20px env(safe-area-inset-bottom, 24px);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--canvas);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--hairline-interactive); box-shadow: var(--shadow-focus); }
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--canvas);
+  outline: none;
+  resize: none;
+  height: 80px;
+}
+.form-textarea:focus { border-color: var(--hairline-interactive); box-shadow: var(--shadow-focus); }
+.form-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.form-tag {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.form-tag.active {
+  background: var(--ink);
+  color: #fcfbf8;
+  border-color: var(--ink);
+  box-shadow: var(--shadow-inset);
+}
+.schedule-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.schedule-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  background: var(--canvas);
+  transition: all 0.2s;
+}
+.schedule-btn.active {
+  background: var(--ink);
+  color: #fcfbf8;
+  border-color: var(--ink);
+  box-shadow: var(--shadow-inset);
+}
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: var(--ink);
+  color: #fcfbf8;
+  border: none;
+  border-radius: var(--radius-btn);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: var(--shadow-inset);
+  letter-spacing: -0.3px;
+}
+.btn-submit:active { opacity: 0.8; }
+
+/* Detail Modal */
+.detail-header { position: relative; padding-bottom: 12px; }
+.detail-img { width: 100%; border-radius: 12px; margin-bottom: 12px; max-height: 200px; object-fit: cover; }
+.detail-title { font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 4px; letter-spacing: -0.3px; }
+.detail-meta { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+.detail-meta svg { width: 14px; height: 14px; }
+.detail-tag { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(28,28,28,0.04); border: 1px solid var(--hairline); font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.detail-desc { font-size: 14px; color: var(--ink); line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+.detail-actions { display: flex; gap: 8px; margin-top: 16px; }
+.detail-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-btn);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+.detail-actions button:active { opacity: 0.8; }
+.btn-plan { background: var(--ink); color: #fcfbf8; box-shadow: var(--shadow-inset); }
+.btn-edit { background: rgba(28,28,28,0.04); color: var(--ink); border: 1px solid var(--hairline) !important; }
+.btn-delete { background: rgba(28,28,28,0.04); color: #c0392b; border: 1px solid var(--hairline) !important; }
+
+/* Overlay cards - unified style for inspiration & dice */
+.overlay-card-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(28,28,28,0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.overlay-card {
+  background: var(--canvas);
+  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  position: relative;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.overlay-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: rgba(28,28,28,0.04);
+  border: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.overlay-close:active { opacity: 0.8; }
+.overlay-close svg { width: 16px; height: 16px; }
+.overlay-anim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 60px;
+  margin: 16px 0;
+}
+.overlay-anim .star {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.3s ease;
+  color: #FF9500;
+}
+.overlay-anim .star.show {
+  opacity: 1;
+  transform: scale(1);
+}
+.overlay-anim .star.wiggle {
+  animation: starWiggle 0.4s ease;
+}
+@keyframes starWiggle {
+  0%,100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-10deg) scale(1.1); }
+  75% { transform: rotate(10deg) scale(1.1); }
+}
+.overlay-anim .dice-anim {
+  width: 80px;
+  height: 80px;
+}
+.overlay-anim .dice-anim img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.overlay-result { display: none; text-align: center; }
+.overlay-result-title { font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.3px; }
+.overlay-result-reason { font-size: 13px; color: var(--muted); margin-bottom: 16px; min-height: 18px; }
+.overlay-actions {
+  display: none;
+  gap: 8px;
+  justify-content: center;
+}
+.overlay-actions button {
+  padding: 10px 20px;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.overlay-actions button:active { opacity: 0.8; }
+.overlay-btn-primary { background: var(--ink); color: #fcfbf8; box-shadow: var(--shadow-inset); }
+.overlay-btn-secondary { background: rgba(28,28,28,0.04); color: var(--ink); border: 1px solid var(--hairline) !important; }
+
+/* Confirm Dialog */
+.confirm-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(28,28,28,0.4);
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.confirm-card {
+  background: var(--canvas);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--hairline);
+  padding: 24px;
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+}
+.confirm-title { font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.3px; }
+.confirm-msg { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+.confirm-btns { display: flex; gap: 8px; }
+.confirm-btns button { flex: 1; padding: 12px; border-radius: var(--radius-btn); font-size: 15px; font-weight: 400; border: none; cursor: pointer; transition: opacity 0.2s; }
+.confirm-btns button:active { opacity: 0.8; }
+.confirm-cancel { background: rgba(28,28,28,0.04); color: var(--ink); border: 1px solid var(--hairline) !important; }
+.confirm-danger { background: var(--ink); color: #fcfbf8; box-shadow: var(--shadow-inset); }
+
+/* Status badge in detail */
+.detail-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  margin-right: 6px;
+}
+.status-done { background: #E8F5E9; color: #2E7D32; }
+.status-planned { background: #E3F2FD; color: #1565C0; }
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--ink);
+  color: #fcfbf8;
+  padding: 12px 24px;
+  border-radius: var(--radius-btn);
+  font-size: 14px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: var(--shadow-focus);
+}
+.toast.show { opacity: 1; }
+
+/* Onboarding */
+.onboarding {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--canvas);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.onboarding-card { width: 100%; max-width: 300px; text-align: center; }
+.onboarding-title { font-size: 24px; font-weight: 600; color: var(--ink); margin-bottom: 8px; letter-spacing: -0.5px; }
+.onboarding-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+.onboarding-input {
+  width: 100%;
+  font-size: 18px;
+  text-align: center;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  background: var(--canvas);
+  margin-bottom: 16px;
+  outline: none;
+  color: var(--ink);
+}
+.onboarding-input:focus { border-color: var(--hairline-interactive); box-shadow: var(--shadow-focus); }
+}
+.onboarding-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--ink);
+  color: #fcfbf8;
+  border: none;
+  border-radius: var(--radius-btn);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-inset);
+  letter-spacing: -0.3px;
+}
+.onboarding-btn:active { opacity: 0.8; }
+.onboarding-btn:disabled { opacity: 0.3; }
+
+/* Date picker modal */
+.date-pick-options { display: flex; flex-direction: column; gap: 8px; }
+.date-pick-btn {
+  padding: 14px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--hairline);
+  font-size: 15px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--canvas);
+  color: var(--ink);
+  transition: opacity 0.2s;
+}
+.date-pick-btn:active { opacity: 0.8; box-shadow: var(--shadow-focus); }
+
+/* Dice - now uses overlay-card style */
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Tab: 本周 -->
+  <div class="tab-panel active" id="tab-week">
+    <div class="header">
+      <div class="greeting" id="greeting">Hi</div>
+    </div>
+    <div class="week-nav">
+      <button class="week-nav-btn" onclick="prevWeek()"><i data-lucide="chevron-left"></i></button>
+      <span class="week-label" id="week-label">本周</span>
+      <button class="week-nav-btn" onclick="nextWeek()"><i data-lucide="chevron-right"></i></button>
+    </div>
+    <div class="date-strip" id="date-strip"></div>
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>计划</span>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span style="cursor:pointer;" onclick="openAddModal()" title="添加"><i data-lucide="plus" style="width:18px;height:18px;color:var(--muted);"></i></span>
+        <span style="cursor:pointer;" onclick="showInspirationOverlay()" title="灵感"><i data-lucide="sparkles" style="width:18px;height:18px;color:var(--muted);"></i></span>
+        <span style="cursor:pointer;" onclick="randomPick()" title="摇骰子"><i data-lucide="dices" style="width:18px;height:18px;color:var(--muted);"></i></span>
+      </div>
+    </div>
+    <div class="plan-list" id="plan-list"></div>
+  </div>
+
+  <!-- Tab: 我的Mark -->
+  <div class="tab-panel" id="tab-mark">
+    <div class="header">
+      <div class="greeting" style="font-size:18px;">我的 Mark</div>
+    </div>
+    <div class="tag-filter" id="tag-filter"></div>
+    <div class="mark-list" id="mark-list"></div>
+  </div>
+
+  <!-- FAB (Mark tab only) -->
+  <div class="fab" id="fab" onclick="openAddModal()"><i data-lucide="plus"></i></div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-tab="tab-week" onclick="switchTab(this)">
+      <i data-lucide="calendar"></i>
+      <span>本周</span>
+    </div>
+    <div class="tab-item" data-tab="tab-mark" onclick="switchTab(this)">
+      <i data-lucide="bookmark"></i>
+      <span>Mark</span>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal" onclick="closeModalBg(event,'detail-modal')">
+  <div class="modal-sheet" style="position:relative;">
+    <div class="modal-close" onclick="hideModal('detail-modal')"><i data-lucide="x"></i></div>
+    <div id="detail-img-wrap" style="display:none;"></div>
+    <div class="detail-title" id="detail-title"></div>
+    <div class="detail-meta" id="detail-meta"></div>
+    <div class="detail-tag" id="detail-tag"></div>
+    <div class="detail-desc" id="detail-desc"></div>
+    <div class="detail-actions" id="detail-actions">
+      <button class="btn-plan" id="detail-btn-plan" onclick="planFromDetail()">安排日期</button>
+      <button class="btn-edit" onclick="editFromDetail()">编辑</button>
+      <button class="btn-delete" onclick="deleteFromDetail()">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="add-modal" onclick="closeModalBg(event,'add-modal')">
+  <div class="modal-sheet">
+    <div class="modal-title" id="add-modal-title">Mark 一下</div>
+    <div class="form-group">
+      <div class="form-label">名称</div>
+      <input class="form-input" id="add-name" placeholder="想做什么？" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <div class="form-label">简介（选填）</div>
+      <textarea class="form-textarea" id="add-desc" placeholder="备注..."></textarea>
+    </div>
+    <div class="form-group">
+      <div class="form-label">标签</div>
+      <div class="form-tags" id="form-tags"></div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">安排时间</div>
+      <div class="schedule-options" id="schedule-options"></div>
+      <input type="date" id="schedule-date-input" style="display:none;margin-top:8px;width:100%;padding:10px;border:1.5px solid var(--hairline);border-radius:8px;font-size:14px;">
+    </div>
+    <button class="btn-submit" onclick="submitAdd()">确认</button>
+  </div>
+</div>
+
+<!-- Date Pick Modal (for detail plan) -->
+<div class="modal-overlay" id="dateplan-modal" onclick="closeModalBg(event,'dateplan-modal')">
+  <div class="modal-sheet">
+    <div class="modal-title">安排到哪天？</div>
+    <div class="date-pick-options">
+      <div class="date-pick-btn" onclick="planToDate('today')">今天</div>
+      <div class="date-pick-btn" onclick="planToDate('tomorrow')">明天</div>
+      <div class="date-pick-btn" onclick="showCustomDatePlan()">选日期...</div>
+      <input type="date" id="custom-plan-date" style="display:none;margin-top:8px;width:100%;padding:12px;border:1.5px solid var(--hairline);border-radius:8px;font-size:15px;" onchange="planToCustomDate(this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- Dice overlay - dynamically created -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// === Data ===
+let markItems = [];
+let currentFilter = '全部';
+let selectedDetailItem = null;
+let selectedFormTag = null;
+let selectedSchedule = 'none';
+let editingItemId = null;
+
+const allTags = ['全部', '运动', '影音', '探店', '学习', '出行', '家务', '购物', '其他'];
+
+// === Date State ===
+let weekOffset = 0; // 0=this week, 1=next week, -1=last week
+let selectedDate = getTodayStr(); // YYYY-MM-DD
+
+function getTodayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function getWeekDates(offset) {
+  const now = new Date();
+  const day = now.getDay() || 7; // Monday=1
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - day + 1 + offset * 7);
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function formatDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+const DAY_NAMES = ['周一','周二','周三','周四','周五','周六','周日'];
+
+// === localStorage ===
+const STORAGE_KEY = 'markanddo_app_data';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ markItems, nickname: window._userNickname || '', version: 1 }));
+  } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.markItems) markItems = data.markItems;
+      if (data.nickname) window._userNickname = data.nickname;
+      // Migrate old planDay format
+      markItems.forEach(item => {
+        if (item.planDay === '周六' || item.planDay === '周日') {
+          const now = new Date();
+          const day = now.getDay() || 7;
+          const targetDay = item.planDay === '周六' ? 6 : 7;
+          const diff = targetDay - day;
+          const target = new Date(now);
+          target.setDate(now.getDate() + diff);
+          item.planDay = formatDateStr(target);
+        }
+      });
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// === Init ===
+function init() {
+  loadFromStorage();
+  if (!window._userNickname) {
+    showOnboarding();
+    return;
+  }
+  startApp();
+}
+
+function startApp() {
+  setGreeting();
+  renderDateStrip();
+  renderPlanList();
+  renderTagFilter();
+  renderMarkList();
+  lucide.createIcons();
+  syncFromInbox();
+}
+
+// === Inspiration ===
+const inspirationPool = [
+  { title: '晚间慢跑 3 公里', tag: '运动', reason: '用出汗结束一天的笮惫' },
+  { title: '去一家没去过的咖啡店', tag: '探店', reason: '每家店的拿铁都有自己的性格' },
+  { title: '看一部豆瓣 8.5+ 电影', tag: '影音', reason: '完美的放松方式' },
+  { title: '去公园铺块布野餐', tag: '出行', reason: '阳光免费，快乐也免费' },
+  { title: '给房间来个大扫除', tag: '家务', reason: '干净的房间能治愈 90% 的坏心情' },
+  { title: '学一道新菜', tag: '学习', reason: '给自己做顿好的，是最实在的犯赏' },
+  { title: '逃周末市集', tag: '购物', reason: '不为买东西，就为感受人间烟火气' },
+  { title: '给很久没联系的朋友发条消息', tag: '其他', reason: '一句“最近怎样”就够了' },
+  { title: '给自己买束花', tag: '购物', reason: '不需要理由，花本身就是理由' },
+  { title: '尝试冥想十分钟', tag: '其他', reason: '闭上眼，什么都不想，比想象中舒服' },
+  { title: '骑车去没去过的路', tag: '运动', reason: '不赶路的时候，骑车才叫骑车' },
+  { title: '整理衣柜换季', tag: '家务', reason: '断舍离之后，打开衣柜的心情都不一样' },
+];
+
+let currentInspiration = null;
+let currentOverlay = null;
+
+function createOverlay(type) {
+  // type: 'inspiration' | 'dice'
+  let overlay = document.getElementById('unified-overlay');
+  if (overlay) overlay.remove();
+  overlay = document.createElement('div');
+  overlay.id = 'unified-overlay';
+  overlay.className = 'overlay-card-bg';
+  overlay.innerHTML = `
+    <div class="overlay-card" onclick="event.stopPropagation()">
+      <div class="overlay-close" onclick="closeOverlay()"><i data-lucide="x"></i></div>
+      <div class="overlay-anim" id="overlay-anim"></div>
+      <div class="overlay-result" id="overlay-result">
+        <div class="overlay-result-title" id="overlay-title"></div>
+        <div class="overlay-result-reason" id="overlay-reason"></div>
+      </div>
+      <div class="overlay-actions" id="overlay-actions">
+        <button class="overlay-btn-primary" onclick="overlayAdopt()">就他了</button>
+        <button class="overlay-btn-secondary" onclick="overlayRefresh()">换一个</button>
+      </div>
+    </div>
+  `;
+  overlay.onclick = function(e) { if (e.target === overlay) closeOverlay(); };
+  document.body.appendChild(overlay);
+  lucide.createIcons();
+  currentOverlay = type;
+  return overlay;
+}
+
+function closeOverlay() {
+  const overlay = document.getElementById('unified-overlay');
+  if (overlay) overlay.remove();
+  currentOverlay = null;
+}
+
+// === Inspiration Flow ===
+function showInspirationOverlay() {
+  createOverlay('inspiration');
+  playStarAnimation();
+}
+
+function playStarAnimation() {
+  const animArea = document.getElementById('overlay-anim');
+  const result = document.getElementById('overlay-result');
+  const actions = document.getElementById('overlay-actions');
+  animArea.style.display = 'flex';
+  result.style.display = 'none';
+  actions.style.display = 'none';
+
+  // 3 stars appear one by one
+  animArea.innerHTML = `
+    <svg class="star" id="s1" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/></svg>
+    <svg class="star" id="s2" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/></svg>
+    <svg class="star" id="s3" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/></svg>
+  `;
+
+  setTimeout(() => document.getElementById('s1').classList.add('show'), 200);
+  setTimeout(() => document.getElementById('s2').classList.add('show'), 500);
+  setTimeout(() => document.getElementById('s3').classList.add('show'), 800);
+  setTimeout(() => {
+    document.querySelectorAll('#overlay-anim .star').forEach(s => s.classList.add('wiggle'));
+  }, 1100);
+  setTimeout(() => {
+    animArea.style.display = 'none';
+    generateInspirationResult();
+    result.style.display = 'block';
+    actions.style.display = 'flex';
+  }, 1500);
+}
+
+function generateInspirationResult() {
+  const pick = inspirationPool[Math.floor(Math.random() * inspirationPool.length)];
+  currentInspiration = pick;
+  document.getElementById('overlay-title').textContent = pick.title;
+  document.getElementById('overlay-reason').textContent = pick.reason;
+}
+
+// === Dice Flow ===
+let dicePick = null;
+
+function randomPick() {
+  const available = markItems.filter(i => !i.inPlan && !i.done);
+  if (!available.length) { showToast('没有可选的 Mark'); return; }
+  window._dicePool = available;
+  createOverlay('dice');
+  playDiceAnimation(available);
+}
+
+function playDiceAnimation(pool) {
+  const animArea = document.getElementById('overlay-anim');
+  const result = document.getElementById('overlay-result');
+  const actions = document.getElementById('overlay-actions');
+  animArea.style.display = 'flex';
+  result.style.display = 'none';
+  actions.style.display = 'none';
+
+  // Dice rolling gif animation
+  animArea.innerHTML = '<div class="dice-anim"><img src="https://media.giphy.com/media/XtESoNon4ufgAjIk6m/giphy.gif" alt="rolling dice"></div>';
+
+  // Flicker titles during animation
+  const titleEl = document.getElementById('overlay-title');
+  let count = 0;
+  const interval = setInterval(() => {
+    const r = pool[Math.floor(Math.random() * pool.length)];
+    titleEl.textContent = r.title;
+    count++;
+    if (count > 10) {
+      clearInterval(interval);
+      setTimeout(() => {
+        animArea.style.display = 'none';
+        dicePick = pool[Math.floor(Math.random() * pool.length)];
+        document.getElementById('overlay-title').textContent = dicePick.title;
+        document.getElementById('overlay-reason').textContent = dicePick.desc || ('#' + dicePick.tag);
+        result.style.display = 'block';
+        actions.style.display = 'flex';
+      }, 200);
+    }
+  }, 120);
+}
+
+// === Shared Actions ===
+function overlayAdopt() {
+  if (currentOverlay === 'inspiration' && currentInspiration) {
+    markItems.push({
+      id: Date.now(),
+      title: currentInspiration.title,
+      desc: currentInspiration.reason || '',
+      tag: currentInspiration.tag,
+      icon: tagToIcon(currentInspiration.tag),
+      createdAt: Date.now(),
+      img: null,
+      inPlan: true,
+      planDay: selectedDate,
+      done: false,
+      doneCount: 0
+    });
+    saveToStorage();
+    renderPlanList();
+    renderMarkList();
+    closeOverlay();
+    showToast('已加入 ' + selectedDate + ' 的计划');
+  } else if (currentOverlay === 'dice' && dicePick) {
+    dicePick.inPlan = true;
+    dicePick.planDay = selectedDate;
+    saveToStorage();
+    renderPlanList();
+    renderMarkList();
+    closeOverlay();
+    showToast('已加入 ' + selectedDate + ' 的计划');
+  }
+}
+
+function overlayRefresh() {
+  if (currentOverlay === 'inspiration') {
+    playStarAnimation();
+  } else if (currentOverlay === 'dice') {
+    playDiceAnimation(window._dicePool || markItems.filter(i => !i.inPlan && !i.done));
+  }
+}
+
+// === Greeting ===
+function setGreeting() {
+  const hour = new Date().getHours();
+  let period = '早上好';
+  if (hour >= 12 && hour < 14) period = '中午好';
+  else if (hour >= 14 && hour < 18) period = '下午好';
+  else if (hour >= 18) period = '晚上好';
+  const dayName = ['周日','周一','周二','周三','周四','周五','周六'][new Date().getDay()];
+  document.getElementById('greeting').textContent = 'Hi ' + (window._userNickname || '') + '，' + dayName + period + ' ✨';
+}
+
+// === Date Strip ===
+function renderDateStrip() {
+  const strip = document.getElementById('date-strip');
+  const dates = getWeekDates(weekOffset);
+  const today = getTodayStr();
+  strip.innerHTML = dates.map((d, i) => {
+    const ds = formatDateStr(d);
+    const isSelected = ds === selectedDate;
+    const isToday = ds === today;
+    return `<div class="date-cell ${isSelected ? 'selected' : ''}" onclick="selectDate('${ds}')">
+      <span class="day-name">${DAY_NAMES[i]}</span>
+      <span class="day-num">${d.getDate()}</span>
+      ${isToday ? '<span class="today-dot"></span>' : ''}
+    </div>`;
+  }).join('');
+
+  // Week label
+  const mon = dates[0]; const sun = dates[6];
+  let label = '';
+  if (weekOffset === 0) label = '本周';
+  else if (weekOffset === 1) label = '下周';
+  else if (weekOffset === -1) label = '上周';
+  else label = (mon.getMonth()+1) + '月' + mon.getDate() + '日 - ' + (sun.getMonth()+1) + '月' + sun.getDate() + '日';
+  document.getElementById('week-label').textContent = label;
+}
+
+function selectDate(ds) {
+  selectedDate = ds;
+  renderDateStrip();
+  renderPlanList();
+  lucide.createIcons();
+}
+
+function prevWeek() {
+  weekOffset--;
+  const dates = getWeekDates(weekOffset);
+  selectedDate = formatDateStr(dates[0]);
+  renderDateStrip();
+  renderPlanList();
+  lucide.createIcons();
+}
+
+function nextWeek() {
+  weekOffset++;
+  const dates = getWeekDates(weekOffset);
+  selectedDate = formatDateStr(dates[0]);
+  renderDateStrip();
+  renderPlanList();
+  lucide.createIcons();
+}
+
+// === Plan List ===
+function renderPlanList() {
+  const list = document.getElementById('plan-list');
+  const items = markItems.filter(i => i.planDay === selectedDate);
+  const sorted = [...items.filter(i => !i.done), ...items.filter(i => i.done)];
+
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty-state">这天还没有计划<br><span style="font-size:12px;color:var(--muted);">从 Mark 池挑选，或直接添加</span></div>';
+    return;
+  }
+
+  list.innerHTML = sorted.map(item => {
+    const doneClass = item.done ? 'done' : '';
+    const checkedClass = item.done ? 'checked' : '';
+    const checkIcon = item.done ? '<i data-lucide="check"></i>' : '';
+    return `<div class="plan-item ${doneClass}" onclick="showDetail(${item.id})">
+      <div class="plan-checkbox ${checkedClass}" onclick="toggleDone(event,${item.id})">${checkIcon}</div>
+      <div class="plan-icon">${item.img ? '<img src="'+item.img+'">' : '<i data-lucide="'+item.icon+'"></i>'}</div>
+      <div class="plan-info">
+        <div class="plan-title">${item.title}</div>
+        <div class="plan-meta">${item.tag}</div>
+      </div>
+      <div class="plan-arrow"><i data-lucide="chevron-right"></i></div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function toggleDone(e, id) {
+  e.stopPropagation();
+  const item = markItems.find(i => i.id === id);
+  if (item) {
+    if (!item.done) {
+      item.done = true;
+      item.doneCount = (item.doneCount || 0) + 1;
+      // Keep in plan for today, just mark done (sinks to bottom)
+    } else {
+      item.done = false;
+    }
+    saveToStorage();
+    renderPlanList();
+    renderMarkList();
+  }
+}
+
+// === Mark List ===
+function renderTagFilter() {
+  document.getElementById('tag-filter').innerHTML = allTags.map(tag =>
+    `<div class="tag-chip ${tag === currentFilter ? 'active' : ''}" onclick="filterByTag('${tag}')">${tag}</div>`
+  ).join('');
+}
+
+function filterByTag(tag) {
+  currentFilter = tag;
+  renderTagFilter();
+  renderMarkList();
+}
+
+function renderMarkList() {
+  const list = document.getElementById('mark-list');
+  let items = markItems.filter(i => !i.done);
+  if (currentFilter !== '全部') items = items.filter(i => i.tag === currentFilter);
+
+  if (!items.length) {
+    list.innerHTML = '<div class="empty-state">还没有 Mark<br><span style="font-size:12px;">点右下角 + 添加一个吧</span></div>';
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    // Meta priority: 已安排 > 已完成x次 > 收藏于
+    let timeInfo = '';
+    if (item.inPlan && item.planDay) {
+      timeInfo = '已安排在' + formatPlanDay(item.planDay);
+    } else if (item.doneCount && item.doneCount > 0) {
+      timeInfo = '已完成' + item.doneCount + '次';
+    } else {
+      timeInfo = '收藏于' + formatMeta(item);
+    }
+    return `
+    <div class="mark-item" onclick="showDetail(${item.id})">
+      <div class="mark-icon">${item.img ? '<img src="'+item.img+'">' : '<i data-lucide="'+item.icon+'"></i>'}</div>
+      <div class="mark-info">
+        <div class="mark-item-title">${item.title}</div>
+        <div class="mark-item-meta">${item.tag} · ${timeInfo}</div>
+      </div>
+      <div class="plan-arrow"><i data-lucide="chevron-right"></i></div>
+    </div>
+  `;
+  }).join('');
+  lucide.createIcons();
+}
+
+function formatMeta(item) {
+  if (!item.createdAt) return '刚刚收藏';
+  const d = new Date(item.createdAt);
+  return String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatPlanDay(planDay) {
+  if (!planDay) return '';
+  const now = new Date();
+  const target = new Date(planDay + 'T00:00:00');
+  if (target.getFullYear() !== now.getFullYear()) return planDay;
+  return String(target.getMonth()+1).padStart(2,'0') + '-' + String(target.getDate()).padStart(2,'0');
+}
+
+// === Tab Switch ===
+function switchTab(el) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const tabId = el.getAttribute('data-tab');
+  document.getElementById(tabId).classList.add('active');
+  // FAB visibility - only in Mark tab
+  document.getElementById('fab').style.display = (tabId === 'tab-mark') ? 'flex' : 'none';
+  lucide.createIcons();
+}
+
+// === Detail ===
+function showDetail(id) {
+  const item = markItems.find(i => i.id === id);
+  if (!item) return;
+  selectedDetailItem = item;
+  const imgWrap = document.getElementById('detail-img-wrap');
+  if (item.img) {
+    imgWrap.innerHTML = '<img class="detail-img" src="'+item.img+'">';
+    imgWrap.style.display = 'block';
+  } else { imgWrap.style.display = 'none'; }
+  document.getElementById('detail-title').textContent = item.title;
+  // Meta line: tag · 收藏时间 [· 已完成x次] [· 已安排在mm-dd]
+  let metaParts = [item.tag, '收藏于' + formatMeta(item)];
+  if (item.doneCount && item.doneCount > 0) {
+    metaParts.push('已完成' + item.doneCount + '次');
+  }
+  if (item.inPlan && item.planDay && !item.done) {
+    metaParts.push('已安排在' + formatPlanDay(item.planDay));
+  }
+  document.getElementById('detail-meta').innerHTML = '<i data-lucide="clock"></i> ' + metaParts.join(' · ');
+  document.getElementById('detail-tag').textContent = ''; // tag shown in meta line
+  document.getElementById('detail-desc').textContent = item.desc || '';
+  // Always show plan button (can re-schedule)
+  document.getElementById('detail-btn-plan').textContent = item.inPlan ? '更改日期' : '安排日期';
+  showModal('detail-modal');
+  lucide.createIcons();
+}
+
+function planFromDetail() {
+  hideModal('detail-modal');
+  setTimeout(() => showModal('dateplan-modal'), 200);
+}
+
+function planToDate(which) {
+  if (!selectedDetailItem) return;
+  const today = new Date();
+  let target;
+  if (which === 'today') target = today;
+  else { target = new Date(today); target.setDate(today.getDate() + 1); }
+  selectedDetailItem.inPlan = true;
+  selectedDetailItem.planDay = formatDateStr(target);
+  saveToStorage();
+  hideModal('dateplan-modal');
+  renderPlanList();
+  renderMarkList();
+  showToast('已安排到 ' + selectedDetailItem.planDay);
+}
+
+function showCustomDatePlan() {
+  const input = document.getElementById('custom-plan-date');
+  input.style.display = 'block';
+  input.value = getTodayStr();
+  input.focus();
+}
+
+function planToCustomDate(val) {
+  if (!selectedDetailItem || !val) return;
+  selectedDetailItem.inPlan = true;
+  selectedDetailItem.planDay = val;
+  saveToStorage();
+  hideModal('dateplan-modal');
+  document.getElementById('custom-plan-date').style.display = 'none';
+  renderPlanList();
+  renderMarkList();
+  showToast('已安排到 ' + val);
+}
+
+function editFromDetail() {
+  hideModal('detail-modal');
+  setTimeout(() => {
+    openAddModal();
+    editingItemId = selectedDetailItem.id;
+    document.getElementById('add-name').value = selectedDetailItem.title;
+    document.getElementById('add-desc').value = selectedDetailItem.desc || '';
+    selectedFormTag = selectedDetailItem.tag;
+    renderFormTags();
+    if (selectedDetailItem.planDay) {
+      selectedSchedule = selectedDetailItem.planDay;
+    }
+    renderScheduleOptions();
+    document.getElementById('add-modal-title').textContent = '编辑';
+  }, 200);
+}
+
+function deleteFromDetail() {
+  if (!selectedDetailItem) return;
+  showConfirmDialog('确定要删除这个 Mark 吗？', '删除后无法恢复', () => {
+    markItems = markItems.filter(i => i.id !== selectedDetailItem.id);
+    saveToStorage();
+    hideModal('detail-modal');
+    renderPlanList();
+    renderMarkList();
+    showToast('已删除');
+  });
+}
+
+function showConfirmDialog(title, msg, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `<div class="confirm-card">
+    <div class="confirm-title">${title}</div>
+    <div class="confirm-msg">${msg}</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" id="confirm-cancel">取消</button>
+      <button class="confirm-danger" id="confirm-ok">删除</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('confirm-cancel').onclick = () => document.body.removeChild(overlay);
+  document.getElementById('confirm-ok').onclick = () => { document.body.removeChild(overlay); onConfirm(); };
+}
+
+// === Add Modal ===
+function openAddModal() {
+  editingItemId = null;
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-desc').value = '';
+  selectedFormTag = null;
+  selectedSchedule = 'none';
+  document.getElementById('schedule-date-input').style.display = 'none';
+  document.getElementById('add-modal-title').textContent = 'Mark 一下';
+  renderFormTags();
+  renderScheduleOptions();
+  showModal('add-modal');
+}
+
+function renderFormTags() {
+  const tags = allTags.filter(t => t !== '全部');
+  document.getElementById('form-tags').innerHTML = tags.map(t =>
+    `<div class="form-tag ${t === selectedFormTag ? 'active' : ''}" onclick="selectFormTag('${t}')">${t}</div>`
+  ).join('');
+}
+
+function selectFormTag(tag) {
+  selectedFormTag = (selectedFormTag === tag) ? null : tag;
+  renderFormTags();
+}
+
+function renderScheduleOptions() {
+  const today = getTodayStr();
+  const tomorrow = formatDateStr(new Date(Date.now() + 86400000));
+  const opts = [
+    { label: '不指定', value: 'none' },
+    { label: '今天', value: today },
+    { label: '明天', value: tomorrow },
+    { label: '选日期', value: 'custom' }
+  ];
+  document.getElementById('schedule-options').innerHTML = opts.map(o =>
+    `<div class="schedule-btn ${selectedSchedule === o.value ? 'active' : ''}" onclick="selectSchedule('${o.value}')">${o.label}</div>`
+  ).join('');
+}
+
+function selectSchedule(val) {
+  const dateInput = document.getElementById('schedule-date-input');
+  if (val === 'custom') {
+    dateInput.style.display = 'block';
+    dateInput.value = selectedSchedule !== 'none' && selectedSchedule !== 'custom' ? selectedSchedule : getTodayStr();
+    dateInput.onchange = function() { selectedSchedule = this.value; renderScheduleOptions(); };
+    selectedSchedule = dateInput.value;
+  } else {
+    dateInput.style.display = 'none';
+    selectedSchedule = val;
+  }
+  renderScheduleOptions();
+}
+
+function tagToIcon(tag) {
+  const map = { '运动':'dumbbell','影音':'film','探店':'coffee','学习':'book-open','出行':'map-pin','家务':'home','购物':'shopping-cart','其他':'star' };
+  return map[tag] || 'star';
+}
+
+function submitAdd() {
+  const name = document.getElementById('add-name').value.trim();
+  const desc = document.getElementById('add-desc').value.trim();
+  if (!name) return;
+
+  if (editingItemId) {
+    const item = markItems.find(i => i.id === editingItemId);
+    if (item) {
+      item.title = name;
+      item.desc = desc;
+      item.tag = selectedFormTag || item.tag;
+      item.icon = tagToIcon(item.tag);
+      if (selectedSchedule !== 'none') {
+        item.inPlan = true;
+        item.planDay = selectedSchedule;
+      } else {
+        item.inPlan = false;
+        item.planDay = null;
+      }
+    }
+    editingItemId = null;
+  } else {
+    markItems.push({
+      id: Date.now(),
+      title: name,
+      desc: desc,
+      tag: selectedFormTag || '其他',
+      icon: tagToIcon(selectedFormTag || '其他'),
+      createdAt: Date.now(),
+      img: null,
+      inPlan: selectedSchedule !== 'none',
+      planDay: selectedSchedule !== 'none' ? selectedSchedule : null,
+      done: false,
+      doneCount: 0
+    });
+  }
+
+  saveToStorage();
+  hideModal('add-modal');
+  renderPlanList();
+  renderMarkList();
+  showToast(editingItemId ? '已更新' : '已 Mark ✨');
+}
+
+// === Modals ===
+function showModal(id) { document.getElementById(id).classList.add('visible'); }
+function hideModal(id) { document.getElementById(id).classList.remove('visible'); }
+function closeModalBg(e, id) { if (e.target === document.getElementById(id)) hideModal(id); }
+
+// === Toast ===
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// === Onboarding ===
+function showOnboarding() {
+  const overlay = document.createElement('div');
+  overlay.className = 'onboarding';
+  overlay.innerHTML = `<div class="onboarding-card">
+    <div class="onboarding-title">先mark后做</div>
+    <div class="onboarding-subtitle">告诉我你的昵称吧</div>
+    <input type="text" id="ob-input" class="onboarding-input" placeholder="输入昵称" autocomplete="off">
+    <button class="onboarding-btn" id="ob-btn" disabled onclick="confirmNickname()">开始使用</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  const input = document.getElementById('ob-input');
+  const btn = document.getElementById('ob-btn');
+  let composing = false;
+  input.addEventListener('compositionstart', () => composing = true);
+  input.addEventListener('compositionend', () => { composing = false; if(input.value.length > 10) input.value = input.value.slice(0,10); btn.disabled = !input.value.trim(); });
+  input.addEventListener('input', () => { if(composing) return; if(input.value.length > 10) input.value = input.value.slice(0,10); btn.disabled = !input.value.trim(); });
+  input.addEventListener('keydown', e => { if(e.key === 'Enter' && !btn.disabled) confirmNickname(); });
+}
+
+function confirmNickname() {
+  const name = document.getElementById('ob-input').value.trim();
+  if (!name) return;
+  window._userNickname = name;
+  saveToStorage();
+  document.querySelector('.onboarding').remove();
+  startApp();
+}
+
+// === Encrypted Inbox Sync ===
+const SYNC_KEY = 'markanddo_last_sync_id';
+const SYNC_PWD_KEY = 'markanddo_sync_pwd';
+const INBOX_URL = './marks-inbox.json';
+
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+}
+
+async function decryptData(encryptedBase64, password) {
+  const raw = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+  const salt = raw.slice(0, 16);
+  const iv = raw.slice(16, 28);
+  const ciphertext = raw.slice(28);
+  const key = await deriveKey(password, salt);
+  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+  return new TextDecoder().decode(decrypted);
+}
+
+function getSyncPassword() { return localStorage.getItem(SYNC_PWD_KEY) || null; }
+
+function showSyncPasswordPrompt() {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = `<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:300px;text-align:center;">
+      <div style="font-size:18px;font-weight:600;margin-bottom:8px;">同步密码</div>
+      <div style="font-size:13px;color:#86868B;margin-bottom:16px;">输入密码以同步你的 Mark 数据</div>
+      <input type="password" id="sync-pwd-input" style="width:100%;font-size:18px;text-align:center;padding:12px;border:1.5px solid #D2D2D7;border-radius:8px;margin-bottom:12px;" placeholder="请输入密码">
+      <button id="sync-pwd-btn" style="width:100%;padding:12px;background:#1D1D1F;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;">确认</button>
+      <button id="sync-pwd-skip" style="width:100%;padding:10px;background:none;border:none;color:#86868B;font-size:13px;margin-top:8px;cursor:pointer;">跳过</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('sync-pwd-btn').onclick = () => { const p = document.getElementById('sync-pwd-input').value; if(p){document.body.removeChild(overlay);resolve(p);} };
+    document.getElementById('sync-pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('sync-pwd-btn').click(); });
+    document.getElementById('sync-pwd-skip').onclick = () => { document.body.removeChild(overlay); resolve(null); };
+  });
+}
+
+async function syncFromInbox() {
+  try {
+    const resp = await fetch(INBOX_URL + '?t=' + Date.now());
+    if (!resp.ok) return;
+    const payload = await resp.json();
+    if (!payload || !payload.data) return;
+
+    let password = getSyncPassword();
+    if (!password) { password = await showSyncPasswordPrompt(); if (!password) return; }
+
+    let jsonStr;
+    try { jsonStr = await decryptData(payload.data, password); }
+    catch(e) {
+      localStorage.removeItem(SYNC_PWD_KEY);
+      password = await showSyncPasswordPrompt();
+      if (!password) return;
+      try { jsonStr = await decryptData(payload.data, password); } catch(e2) { showToast('密码错误'); return; }
+    }
+
+    localStorage.setItem(SYNC_PWD_KEY, password);
+    const inboxData = JSON.parse(jsonStr);
+    if (!inboxData.marks || !inboxData.marks.length) return;
+
+    const lastSyncId = parseInt(localStorage.getItem(SYNC_KEY) || '0');
+
+    // Update existing items
+    let updated = 0;
+    for (const m of inboxData.marks) {
+      if (m.id <= lastSyncId) {
+        const existing = markItems.find(i => i.id === m.id || i.title.toLowerCase() === m.title.toLowerCase());
+        if (existing) {
+          if (m.inPlan && !existing.inPlan) { existing.inPlan = true; existing.planDay = m.planDay; updated++; }
+          if (m.desc && !existing.desc) { existing.desc = m.desc; updated++; }
+        }
+      }
+    }
+
+    const newMarks = inboxData.marks.filter(m => m.id > lastSyncId);
+    if (newMarks.length === 0 && updated === 0) return;
+
+    const existingTitles = new Set(markItems.map(i => i.title.toLowerCase()));
+    let added = 0;
+    for (const m of newMarks) {
+      if (existingTitles.has(m.title.toLowerCase())) continue;
+      markItems.push({
+        id: m.id,
+        title: m.title,
+        desc: m.desc || '',
+        tag: m.tag || '其他',
+        icon: tagToIcon(m.tag || '其他'),
+        createdAt: m.createdAt || m.id,
+        img: m.img || null,
+        inPlan: !!m.inPlan,
+        planDay: m.planDay || null,
+        done: false,
+        doneCount: 0
+      });
+      added++;
+    }
+
+    if (added > 0 || updated > 0) {
+      if (newMarks.length > 0) localStorage.setItem(SYNC_KEY, String(Math.max(...newMarks.map(m => m.id))));
+      saveToStorage();
+      renderMarkList();
+      renderPlanList();
+      if (added > 0) showToast('同步了 ' + added + ' 条新 Mark ✨');
+    }
+  } catch(e) { console.log('[Sync] Skip:', e.message); }
+}
+
+// Re-sync on visibility
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncFromInbox(); });
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
