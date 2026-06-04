@@ -1,10 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Warm cream rounded square background -->
-  <rect width="512" height="512" rx="108" ry="108" fill="#f7f4ed"/>
-  <!-- Subtle warm border -->
-  <rect width="512" height="512" rx="108" ry="108" fill="none" stroke="#eceae4" stroke-width="4"/>
-  <!-- Bookmark shape in charcoal -->
-  <path d="M168 96 h176 a24 24 0 0 1 24 24 v312 l-112 -64 l-112 64 V120 a24 24 0 0 1 24 -24z" fill="none" stroke="#1c1c1c" stroke-width="26" stroke-linejoin="round"/>
-  <!-- Checkmark inside bookmark -->
-  <polyline points="212,260 248,296 308,220" fill="none" stroke="#1c1c1c" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Warm tan rounded square background -->
+  <rect width="512" height="512" rx="108" ry="108" fill="#eceae4"/>
+  <!-- Bookmark shape - filled cream, stroked charcoal -->
+  <path d="M168 96 h176 a24 24 0 0 1 24 24 v312 l-112 -64 l-112 64 V120 a24 24 0 0 1 24 -24z" fill="#f7f4ed" stroke="#1c1c1c" stroke-width="22" stroke-linejoin="round"/>
+  <!-- Checkmark in warm amber -->
+  <polyline points="212,258 248,294 308,218" fill="none" stroke="#b8860b" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
