@@ -1659,7 +1659,7 @@ function submitAdd() {
 }
 
 // === Modals ===
-function showModal(id) { document.getElementById(id).classList.add('visible'); }
+function showModal(id) { document.getElementById(id).classList.add('visible'); lucide.createIcons(); }
 function hideModal(id) { document.getElementById(id).classList.remove('visible'); }
 function closeModalBg(e, id) { if (e.target === document.getElementById(id)) hideModal(id); }
 
