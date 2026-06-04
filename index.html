@@ -1772,14 +1772,14 @@ async function syncFromInbox() {
 
     const lastSyncId = parseInt(localStorage.getItem(SYNC_KEY) || '0');
 
-    // Update existing items
+    // Update existing items (only fill missing data, never override local changes to inPlan/planDay)
     let updated = 0;
     for (const m of inboxData.marks) {
       if (m.id <= lastSyncId) {
         const existing = markItems.find(i => i.id === m.id || i.title.toLowerCase() === m.title.toLowerCase());
         if (existing) {
-          if (m.inPlan && !existing.inPlan) { existing.inPlan = true; existing.planDay = m.planDay; updated++; }
           if (m.desc && !existing.desc) { existing.desc = m.desc; updated++; }
+          if (m.tag && existing.tag === '其他' && m.tag !== '其他') { existing.tag = m.tag; existing.icon = tagToIcon(m.tag); updated++; }
         }
       }
     }
