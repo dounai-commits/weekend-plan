@@ -1570,7 +1570,10 @@ function confirmNickname() {
   if (!name) return;
   window._userNickname = name;
   const pwd = document.getElementById('ob-password').value.trim();
-  if (pwd) window._userPassword = pwd;
+  if (pwd) {
+    window._userPassword = pwd;
+    localStorage.setItem(SYNC_PWD_KEY, pwd);
+  }
   saveToStorage();
   document.querySelector('.onboarding').remove();
   startApp();
