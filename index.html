@@ -289,7 +289,7 @@ body {
   background: rgba(247,244,237,0.92);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--hairline);
-  padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  padding: 10px 0 calc(env(safe-area-inset-bottom, 8px) + 4px);
   z-index: 100;
 }
 .tab-item {
@@ -744,7 +744,7 @@ body {
     <div class="header">
       <div class="greeting" id="greeting">Hi</div>
     </div>
-    <div class="week-nav">
+    <div class="week-nav" style="margin-top:8px;">
       <button class="week-nav-btn" onclick="prevWeek()"><i data-lucide="chevron-left"></i></button>
       <span class="week-label" id="week-label">本周</span>
       <button class="week-nav-btn" onclick="nextWeek()"><i data-lucide="chevron-right"></i></button>
@@ -753,7 +753,7 @@ body {
     <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>计划</span>
       <div style="display:flex;gap:12px;align-items:center;">
-        <span style="cursor:pointer;" onclick="openAddModal()" title="添加"><i data-lucide="plus" style="width:18px;height:18px;color:var(--muted);"></i></span>
+        <span style="cursor:pointer;width:26px;height:26px;border:1.5px solid var(--hairline);border-radius:50%;display:flex;align-items:center;justify-content:center;" onclick="openAddModal()" title="添加"><i data-lucide="plus" style="width:14px;height:14px;color:var(--muted);"></i></span>
         <span style="cursor:pointer;" onclick="showInspirationOverlay()" title="灵感"><i data-lucide="sparkles" style="width:18px;height:18px;color:var(--muted);"></i></span>
         <span style="cursor:pointer;" onclick="randomPick()" title="摇骰子"><i data-lucide="dices" style="width:18px;height:18px;color:var(--muted);"></i></span>
       </div>
@@ -764,7 +764,7 @@ body {
   <!-- Tab: 我的Mark -->
   <div class="tab-panel" id="tab-mark">
     <div class="header">
-      <div class="greeting" style="font-size:18px;">我的 Mark</div>
+      <div class="greeting" style="font-size:22px;">我的 Mark</div>
     </div>
     <div class="tag-filter" id="tag-filter"></div>
     <div class="mark-list" id="mark-list"></div>
@@ -970,6 +970,7 @@ function createOverlay(type) {
   overlay.innerHTML = `
     <div class="overlay-card" onclick="event.stopPropagation()">
       <div class="overlay-close" onclick="closeOverlay()"><i data-lucide="x"></i></div>
+      <div class="overlay-badge" id="overlay-badge" style="position:absolute;top:16px;right:16px;font-size:12px;font-weight:500;color:var(--muted);"></div>
       <div class="overlay-anim" id="overlay-anim"></div>
       <div class="overlay-result" id="overlay-result">
         <div class="overlay-result-title" id="overlay-title"></div>
@@ -985,6 +986,7 @@ function createOverlay(type) {
   document.body.appendChild(overlay);
   lucide.createIcons();
   currentOverlay = type;
+  document.getElementById('overlay-badge').textContent = type === 'inspiration' ? '灵感' : '随机';
   return overlay;
 }
 
