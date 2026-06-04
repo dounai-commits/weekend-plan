@@ -2102,7 +2102,95 @@ function startApp() {
   renderMarkList();
   renderWeekNote();
   lucide.createIcons();
+  // Sync from encrypted inbox
+  syncFromInbox();
 }
+
+// === Encrypted Inbox Sync ===
+const SYNC_KEY = 'weekend_last_sync_id';
+const INBOX_URL = './marks-inbox.json';
+
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
+async function decryptData(encryptedBase64, password) {
+  const raw = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+  // Format: salt(16) + iv(12) + ciphertext
+  const salt = raw.slice(0, 16);
+  const iv = raw.slice(16, 28);
+  const ciphertext = raw.slice(28);
+  const key = await deriveKey(password, salt);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: iv },
+    key,
+    ciphertext
+  );
+  return new TextDecoder().decode(decrypted);
+}
+
+async function syncFromInbox() {
+  try {
+    const resp = await fetch(INBOX_URL + '?t=' + Date.now());
+    if (!resp.ok) return;
+    const payload = await resp.json();
+    if (!payload || !payload.data) return;
+
+    const password = '980310';
+    const jsonStr = await decryptData(payload.data, password);
+    const inboxData = JSON.parse(jsonStr);
+    if (!inboxData.marks || !inboxData.marks.length) return;
+
+    const lastSyncId = parseInt(localStorage.getItem(SYNC_KEY) || '0');
+    const newMarks = inboxData.marks.filter(m => m.id > lastSyncId);
+    if (newMarks.length === 0) return;
+
+    // Merge: skip duplicates by title
+    const existingTitles = new Set(markItems.map(i => i.title.toLowerCase()));
+    let added = 0;
+    for (const m of newMarks) {
+      if (existingTitles.has(m.title.toLowerCase())) continue;
+      markItems.push({
+        id: m.id,
+        title: m.title,
+        desc: m.desc || '',
+        tag: m.tag || '其他',
+        icon: tagToIcon(m.tag || '其他'),
+        meta: '',
+        createdAt: m.createdAt || m.id,
+        img: m.img || null,
+        inPlan: false,
+        planDay: null,
+        done: false
+      });
+      added++;
+    }
+
+    if (added > 0) {
+      // Update sync watermark
+      const maxId = Math.max(...newMarks.map(m => m.id));
+      localStorage.setItem(SYNC_KEY, String(maxId));
+      saveToStorage();
+      renderMarkList();
+      renderPlanList();
+      console.log('[Inbox Sync] Added ' + added + ' new marks');
+    }
+  } catch(e) {
+    // Silently fail - offline or no inbox yet
+    console.log('[Inbox Sync] Skip:', e.message);
+  }
+}
+// === End Inbox Sync ===
 
 function showOnboarding() {
   // Create onboarding overlay
