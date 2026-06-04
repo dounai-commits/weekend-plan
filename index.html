@@ -753,7 +753,7 @@ body {
     <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>计划</span>
       <div style="display:flex;gap:12px;align-items:center;">
-        <span style="cursor:pointer;" onclick="openAddModal()" title="添加"><i data-lucide="plus" style="width:18px;height:18px;color:var(--muted);"></i></span>
+        <span style="cursor:pointer;" onclick="openAddModal(selectedDate)" title="添加"><i data-lucide="plus" style="width:18px;height:18px;color:var(--muted);"></i></span>
         <span style="cursor:pointer;" onclick="showInspirationOverlay()" title="灵感"><i data-lucide="sparkles" style="width:18px;height:18px;color:var(--muted);"></i></span>
         <span style="cursor:pointer;" onclick="randomPick()" title="摇骰子"><i data-lucide="dices" style="width:18px;height:18px;color:var(--muted);"></i></span>
       </div>
@@ -1444,12 +1444,12 @@ function showConfirmDialog(title, msg, onConfirm) {
 }
 
 // === Add Modal ===
-function openAddModal() {
+function openAddModal(defaultDate) {
   editingItemId = null;
   document.getElementById('add-name').value = '';
   document.getElementById('add-desc').value = '';
   selectedFormTag = null;
-  selectedSchedule = 'none';
+  selectedSchedule = defaultDate || 'none';
   document.getElementById('schedule-date-input').style.display = 'none';
   document.getElementById('add-modal-title').textContent = 'Mark 一下';
   renderFormTags();
