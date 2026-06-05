@@ -1155,6 +1155,7 @@ function overlayAdopt() {
   } else if (currentOverlay === 'dice' && dicePick) {
     dicePick.inPlan = true;
     dicePick.planDay = selectedDate;
+    dicePick.updatedAt = Date.now();
     saveToStorage();
     renderPlanList();
     renderMarkList();
@@ -1237,7 +1238,9 @@ function nextWeek() {
 function renderPlanList() {
   const list = document.getElementById('plan-list');
   const items = markItems.filter(i => i.planDay === selectedDate);
-  const sorted = [...items.filter(i => !i.done), ...items.filter(i => i.done)];
+  const undone = items.filter(i => !i.done).sort((a, b) => (b.updatedAt || b.createdAt || b.id) - (a.updatedAt || a.createdAt || a.id));
+  const done = items.filter(i => i.done).sort((a, b) => (b.updatedAt || b.createdAt || b.id) - (a.updatedAt || a.createdAt || a.id));
+  const sorted = [...undone, ...done];
 
   if (!sorted.length) {
     list.innerHTML = '<div class="empty-state">这天还没有计划<br><span style="font-size:12px;color:var(--muted);">从 Mark 池挑选，或直接添加</span></div>';
@@ -1295,6 +1298,9 @@ function renderMarkList() {
   const list = document.getElementById('mark-list');
   let items = markItems.filter(i => !i.done);
   if (currentFilter !== '全部') items = items.filter(i => i.tag === currentFilter);
+
+  // Sort by most recently updated/created first
+  items.sort((a, b) => (b.updatedAt || b.createdAt || b.id) - (a.updatedAt || a.createdAt || a.id));
 
   if (!items.length) {
     list.innerHTML = '<div class="empty-state">还没有 Mark<br><span style="font-size:12px;">点右下角 + 添加一个吧</span></div>';
@@ -1402,6 +1408,7 @@ function planToDate(which) {
   if (which === 'none') {
     selectedDetailItem.inPlan = false;
     selectedDetailItem.planDay = null;
+    selectedDetailItem.updatedAt = Date.now();
     saveToStorage();
     hideModal('dateplan-modal');
     renderPlanList();
@@ -1415,6 +1422,7 @@ function planToDate(which) {
   else { target = new Date(today); target.setDate(today.getDate() + 1); }
   selectedDetailItem.inPlan = true;
   selectedDetailItem.planDay = formatDateStr(target);
+  selectedDetailItem.updatedAt = Date.now();
   saveToStorage();
   hideModal('dateplan-modal');
   renderPlanList();
@@ -1433,6 +1441,7 @@ function planToCustomDate(val) {
   if (!selectedDetailItem || !val) return;
   selectedDetailItem.inPlan = true;
   selectedDetailItem.planDay = val;
+  selectedDetailItem.updatedAt = Date.now();
   saveToStorage();
   hideModal('dateplan-modal');
   document.getElementById('custom-plan-date').style.display = 'none';
@@ -1633,6 +1642,7 @@ function submitAdd() {
         item.inPlan = false;
         item.planDay = null;
       }
+      item.updatedAt = Date.now();
     }
     editingItemId = null;
   } else {
